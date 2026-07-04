@@ -32,6 +32,10 @@ export default function RootLayout() {
               name="item/[id]"
               options={{ title: 'Item', presentation: 'modal' }}
             />
+            <Stack.Screen
+              name="rating/[id]"
+              options={{ title: 'Style Jury', presentation: 'modal' }}
+            />
           </Stack>
         </AuthProvider>
       </QueryClientProvider>

@@ -2,7 +2,7 @@ import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { useLogWear, useSendFeedback, useSuggestions } from '../../api/hooks';
+import { useLogWear, useRateOutfit, useSendFeedback, useSuggestions } from '../../api/hooks';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { OutfitCard } from '../../components/OutfitCard';
@@ -24,6 +24,7 @@ export default function TodayScreen() {
   const { data, isLoading, refetch } = useSuggestions(coords);
   const feedback = useSendFeedback();
   const logWear = useLogWear();
+  const rateOutfit = useRateOutfit();
 
   useEffect(() => {
     (async () => {
@@ -44,6 +45,14 @@ export default function TodayScreen() {
     if (!current) return;
     feedback.mutate({ itemIds: current.items.map((i) => i.id), liked });
     setCursor((c) => c + 1);
+  };
+
+  const askTheJury = async () => {
+    if (!current || rateOutfit.isPending) return;
+    const rating = await rateOutfit.mutateAsync({
+      itemIds: current.items.map((i) => i.id),
+    });
+    router.push(`/rating/${rating.id}`);
   };
 
   const wearIt = async () => {
@@ -93,6 +102,12 @@ export default function TodayScreen() {
             <Button title="Wear this today" onPress={wearIt} loading={logWear.isPending} />
             <Button title="♥ Like" variant="secondary" onPress={() => rate(true)} />
           </View>
+          <Button
+            title={rateOutfit.isPending ? 'The jury is deliberating…' : '🗣️ What will people think?'}
+            variant="secondary"
+            onPress={askTheJury}
+            loading={rateOutfit.isPending}
+          />
           <Text style={[theme.text.caption, { color: theme.colors.textMuted, textAlign: 'center' }]}>
             Swipe right to like, left to pass — LAM learns your taste.
           </Text>

@@ -20,7 +20,6 @@ import {
   ScorableItem,
   scoreBodyShapeFit,
   scoreColorHarmony,
-  scoreFreshness,
 } from './outfitScoring';
 
 export interface JuryItem extends ScorableItem {
@@ -370,7 +369,9 @@ function outfitFacts(items: JuryItem[], ctx: JuryContext): OutfitFacts {
   const main = items[0];
   return {
     mainColor: colors[0] ?? 'neutral',
-    mainPiece: (main?.name ?? main?.subcategory ?? main?.category ?? 'piece').toLowerCase(),
+    // Prefer the garment type over the user-given name (names often already
+    // contain the color, and templates prefix `mainColor`)
+    mainPiece: (main?.subcategory ?? main?.category ?? 'piece').toLowerCase(),
     colorList: colors.slice(0, 3).join(' + ') || 'muted',
     colorCount: colors.length,
     monochrome: colors.length === 1 && items.length > 1,
@@ -392,13 +393,14 @@ export function heuristicJury(
   ctx: JuryContext,
   learnedWeights: ReadonlyMap<string, number> = new Map(),
 ): JuryResult {
+  // Freshness (recently-worn penalty) is deliberately excluded: strangers
+  // judging the outfit don't know you wore it Tuesday.
   const color = scoreColorHarmony(items, learnedWeights);
   const body = scoreBodyShapeFit(items, ctx.bodyShape ?? null);
-  const fresh = scoreFreshness(items, new Date());
 
-  // Engine score roughly spans [-0.3, 1.0] → map onto a 35..92 band
-  const engine = color.score + body.score + fresh.score;
-  const base = clampScore(62 + engine * 40);
+  // Engine score roughly spans [-0.3, 0.8] → map onto a ~50..95 band
+  const engine = color.score + body.score;
+  const base = clampScore(64 + engine * 40);
 
   const facts = outfitFacts(items, ctx);
   const seed = items

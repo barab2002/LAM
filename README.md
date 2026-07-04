@@ -19,6 +19,11 @@ taste, body shape and the local weather.
   outfits and LAM learns your color-combination taste (pairwise weights).
   Suggestions also respect your body shape and today's forecast
   (Open-Meteo, no API key needed).
+- **Style Jury** — a MiroFish/POSIM-inspired opinion simulation: 7 AI
+  personas (fashion editor, best friend, coworker, first date, gen-z kid,
+  grandma, minimalist stylist) rate your outfit, debate each other in an
+  opinion-dynamics round, and deliver a 0-100 score + verdict on *what
+  people will think*.
 
 ## Architecture
 
@@ -122,6 +127,34 @@ Dev-bypass mode is for local development only. For real deployments:
   `react-native-fast-tflite` in a dev-client build, run MediaPipe's
   `hand_landmarker.task` in a frame processor and feed the landmarks to the
   same classifier — `CaptureCamera.tsx` documents the wiring point.
+
+## Style Jury LLM backends (free or paid)
+
+The jury speaks through **any OpenAI-compatible endpoint** — set these on
+the server (see `server/.env.example`):
+
+| Backend | `LLM_BASE_URL` | Example `LLM_MODEL` | Cost |
+| --- | --- | --- | --- |
+| Ollama (local) | `http://localhost:11434/v1` | `llama3.2` | free |
+| Groq | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` | free tier |
+| OpenRouter | `https://openrouter.ai/api/v1` | `meta-llama/llama-3.3-70b-instruct:free` | free models |
+| Gemini | `https://generativelanguage.googleapis.com/v1beta/openai` | `gemini-2.0-flash` | free tier |
+| OpenAI / others | provider URL | any chat model | paid |
+
+Set `LLM_VISION=true` only for multimodal models — the jury then sees the
+actual outfit photos instead of just the tags.
+
+**No backend configured?** The feature still works: a deterministic
+rule-based jury scores the outfit using the suggestion engine (color
+harmony, learned preferences, body shape) with template persona comments,
+labeled "offline jury" in the UI. The API also falls back to it
+automatically whenever the LLM endpoint errors or times out.
+
+How the simulation runs (`server/src/services/styleJuryService.ts`):
+round 1 — each persona reacts independently; round 2 — personas read the
+panel and may revise their score ±10 and reply (conformity/polarization,
+the OASIS/POSIM touch); finally a report agent writes the two-sentence
+verdict, and the mean becomes the 0-100 score.
 
 ## Better clothing recognition
 

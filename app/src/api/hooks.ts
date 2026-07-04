@@ -7,11 +7,13 @@ import { useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import type {
   ClothingItemDto,
+  CreateRatingRequest,
   DailySuggestionsResponse,
   DeclutterItemDto,
   FeedbackRequest,
   LogWearRequest,
   LookDto,
+  OutfitRatingDto,
   UpdateItemRequest,
   UpdateProfileRequest,
   UserProfileDto,
@@ -149,6 +151,39 @@ export function useSendFeedback() {
     mutationFn: (data: FeedbackRequest) =>
       api.post<{ look: LookDto; liked: boolean }>('/feedback', data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['looks'] }),
+  });
+}
+
+// ---------- Style Jury ----------
+
+export function useRateOutfit() {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    // The jury can take a while on slow LLM backends — the server enforces
+    // its own timeout and falls back to the heuristic panel.
+    mutationFn: (data: CreateRatingRequest) => api.post<OutfitRatingDto>('/ratings', data),
+    onSuccess: (rating) => {
+      qc.setQueryData(['ratings', 'detail', rating.id], rating);
+      qc.invalidateQueries({ queryKey: ['ratings', 'list'] });
+    },
+  });
+}
+
+export function useRating(id: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ['ratings', 'detail', id],
+    queryFn: () => api.get<OutfitRatingDto>(`/ratings/${id}`),
+    enabled: Boolean(id),
+  });
+}
+
+export function useRatings(lookId?: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ['ratings', 'list', lookId ?? null],
+    queryFn: () => api.get<OutfitRatingDto[]>(`/ratings${lookId ? `?lookId=${lookId}` : ''}`),
   });
 }
 

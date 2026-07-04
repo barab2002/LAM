@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import React, { useCallback, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useUploadItem } from '../../api/hooks';
+import { useRateOutfit, useUploadItem } from '../../api/hooks';
 import { CaptureCamera } from '../../capture/CaptureCamera';
 import type { CaptureCameraHandle, CapturedPhoto } from '../../capture/types';
 import { CountdownOverlay } from '../../components/CountdownOverlay';
@@ -19,7 +19,15 @@ export default function CaptureScreen() {
   const [count, setCount] = useState<number | null>(null);
   const [gestureAvailable, setGestureAvailable] = useState(false);
   const [lastTagged, setLastTagged] = useState<string | null>(null);
+  const [lastItemId, setLastItemId] = useState<string | null>(null);
   const countdownRunning = useRef(false);
+  const rateOutfit = useRateOutfit();
+
+  const rateThisFit = async () => {
+    if (!lastItemId || rateOutfit.isPending) return;
+    const rating = await rateOutfit.mutateAsync({ itemId: lastItemId });
+    router.push(`/rating/${rating.id}`);
+  };
 
   const uploadPhoto = useCallback(
     async (photo: CapturedPhoto) => {
@@ -37,6 +45,7 @@ export default function CaptureScreen() {
           } as unknown as Blob);
         }
         const result = await upload.mutateAsync(form);
+        setLastItemId(result.item.id);
         setLastTagged(
           result.aiTagged
             ? `Tagged as ${result.item.subcategory ?? result.item.category.toLowerCase()}${
@@ -96,11 +105,18 @@ export default function CaptureScreen() {
                 : `✅ Added to your closet. ${lastTagged}`}
           </Text>
           {phase === 'done' && (
-            <Pressable onPress={() => router.push('/closet')}>
-              <Text style={[theme.text.label, { color: '#FFD9CB' }]}>
-                Open closet →
-              </Text>
-            </Pressable>
+            <View style={styles.bannerActions}>
+              <Pressable onPress={rateThisFit} disabled={rateOutfit.isPending}>
+                <Text style={[theme.text.label, { color: '#FFD9CB' }]}>
+                  {rateOutfit.isPending ? 'Jury deliberating…' : '🗣️ Rate this fit'}
+                </Text>
+              </Pressable>
+              <Pressable onPress={() => router.push('/closet')}>
+                <Text style={[theme.text.label, { color: '#FFD9CB' }]}>
+                  Open closet →
+                </Text>
+              </Pressable>
+            </View>
           )}
         </View>
       )}
@@ -147,6 +163,7 @@ const styles = StyleSheet.create({
     gap: 8,
     alignItems: 'center',
   },
+  bannerActions: { flexDirection: 'row', gap: 24 },
   controls: {
     position: 'absolute',
     bottom: 36,
