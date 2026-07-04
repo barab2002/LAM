@@ -6,6 +6,7 @@ import * as wear from '../controllers/wearHistoryController';
 import * as profile from '../controllers/profileController';
 import * as insights from '../controllers/insightsController';
 import * as suggestions from '../controllers/suggestionsController';
+import * as ratings from '../controllers/ratingsController';
 import { requireAuth } from '../middleware/auth';
 import { asyncHandler } from '../middleware/error';
 
@@ -39,6 +40,11 @@ apiRouter.delete('/wear-history/:id', asyncHandler(wear.deleteWearEntry));
 // Suggestions & feedback
 apiRouter.get('/suggestions/daily', asyncHandler(suggestions.dailySuggestions));
 apiRouter.post('/feedback', asyncHandler(suggestions.submitFeedback));
+
+// Style Jury (outfit rating + simulated public opinion)
+apiRouter.post('/ratings', asyncHandler(ratings.createRating));
+apiRouter.get('/ratings', asyncHandler(ratings.listRatings));
+apiRouter.get('/ratings/:id', asyncHandler(ratings.getRating));
 
 // Profile & insights
 apiRouter.get('/profile', asyncHandler(profile.getProfile));

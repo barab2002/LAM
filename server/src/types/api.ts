@@ -152,6 +152,40 @@ export interface DeclutterItemDto {
   reason: string; // e.g. "Not worn in 8 months"
 }
 
+// ---------- Style Jury (outfit rating + simulated public opinion) ----------
+
+export type RatingSource = 'LLM' | 'HEURISTIC';
+
+export interface PersonaReactionDto {
+  name: string;
+  emoji: string;
+  role: string;
+  score: number; // 0..100 (after the opinion-dynamics round)
+  comment: string;
+  /** One-line reply from the discussion round, if the persona spoke up */
+  reply?: string;
+}
+
+export interface OutfitRatingDto {
+  id: string;
+  lookId: string | null;
+  overallScore: number; // 0..100
+  verdict: string;
+  personas: PersonaReactionDto[];
+  source: RatingSource;
+  createdAt: string;
+}
+
+export interface CreateRatingRequest {
+  /** Rate an existing look… */
+  lookId?: string;
+  /** …or an ad-hoc combination (persisted as an AI_SUGGESTED look) */
+  itemIds?: string[];
+  /** …or a single captured item/photo */
+  itemId?: string;
+  occasion?: string;
+}
+
 export interface ApiError {
   error: string;
   details?: unknown;

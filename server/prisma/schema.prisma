@@ -49,6 +49,11 @@ enum LookSource {
   USER_CREATED
 }
 
+enum RatingSource {
+  LLM
+  HEURISTIC
+}
+
 // ---------- Models ----------
 
 model User {
@@ -74,6 +79,7 @@ model User {
   wearHistory      WearHistory[]
   feedback         OutfitFeedback[]
   colorPreferences ColorPreference[]
+  ratings          OutfitRating[]
 
   @@map("users")
 }
@@ -121,9 +127,31 @@ model Look {
   items       LookItem[]
   wearHistory WearHistory[]
   feedback    OutfitFeedback[]
+  ratings     OutfitRating[]
 
   @@index([userId])
   @@map("looks")
+}
+
+// "Style Jury" verdicts: a MiroFish/POSIM-inspired persona-panel simulation
+// of how people would react to an outfit.
+model OutfitRating {
+  id           String       @id @default(cuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lookId       String?
+  look         Look?        @relation(fields: [lookId], references: [id], onDelete: SetNull)
+  overallScore Int // 0..100
+  verdict      String
+  // Array of { name, emoji, role, score, comment, reply? }
+  personas     Json
+  source       RatingSource
+  // { weather?, occasion?, itemIds }
+  context      Json?
+  createdAt    DateTime     @default(now())
+
+  @@index([userId, createdAt])
+  @@map("outfit_ratings")
 }
 
 model LookItem {

@@ -31,6 +31,20 @@ export const env = {
     secret: process.env.AI_SERVICE_SECRET ?? '',
   },
 
+  /**
+   * Style Jury LLM backend — any OpenAI-compatible /chat/completions
+   * endpoint (Ollama, Groq, OpenRouter free models, Gemini's compat
+   * endpoint, OpenAI, ...). Leave baseUrl empty to use the deterministic
+   * heuristic jury instead.
+   */
+  llm: {
+    baseUrl: (process.env.LLM_BASE_URL ?? '').replace(/\/$/, ''),
+    apiKey: process.env.LLM_API_KEY ?? '',
+    model: process.env.LLM_MODEL ?? '',
+    vision: bool(process.env.LLM_VISION),
+    timeoutMs: int(process.env.LLM_TIMEOUT_MS, 45_000),
+  },
+
   antiRepeatDays: int(process.env.ANTI_REPEAT_DAYS, 14),
 };
 
