@@ -19,9 +19,17 @@ One codebase, three platforms: **iOS · Android · Web** (mobile-first).
 - ✌️ **Hands-free smart capture** — show the camera a "V" gesture (MediaPipe
   hand tracking) and a 3-second countdown fires the shutter. Manual shutter and
   self-timer everywhere.
-- 🧺 **Auto-wardrobe & AI tagging** — every capture flows through background
-  removal (rembg/u2net) → clothing classification (YOLO) → dominant-color
-  extraction, landing pre-tagged in your closet.
+- 🏷️ **Barcode add** — scan the clothing tag (or type the code) and the
+  product's name, brand and photo are pulled in automatically
+  (`BARCODE_API_URL`, free UPCitemdb trial by default); duplicates are
+  detected, and photo capture is the fallback for unknown codes.
+- 🧺 **Auto-wardrobe & AI tagging** — captures, gallery picks and barcode
+  imports all flow through background removal (rembg/u2net) → clothing
+  classification (YOLO) → dominant-color extraction, landing pre-tagged in
+  your closet as floating cutouts.
+- ✨ **Best to go with** — tap any garment to see ranked outfit combinations
+  built around it (same engine as daily suggestions), save any combo as a
+  look, and browse the saved looks that include it.
 - 🌦️ **Daily suggestions** — outfits scored by learned color preferences, your
   body shape, and the local forecast (Open-Meteo, no API key). Swipe right/left
   to teach the engine your taste.

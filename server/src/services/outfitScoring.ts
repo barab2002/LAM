@@ -105,11 +105,13 @@ export function scoreColorHarmony(
     }
   }
 
-  // Monochrome / single-color outfits read intentional
-  const distinct = new Set(
-    items.map((i) => (i.primaryColor ?? i.colors[0])?.toLowerCase()).filter(Boolean),
-  );
-  if (distinct.size === 1 && items.length > 1) {
+  // Monochrome / single-color outfits read intentional — but only when every
+  // piece actually has a known color (untagged items don't make a palette)
+  const knownColors = items
+    .map((i) => (i.primaryColor ?? i.colors[0])?.toLowerCase())
+    .filter((c): c is string => Boolean(c));
+  const distinct = new Set(knownColors);
+  if (distinct.size === 1 && knownColors.length === items.length && items.length > 1) {
     score += 0.15;
     reasons.push('Monochrome look');
   }
