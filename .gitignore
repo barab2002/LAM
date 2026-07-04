@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Builds
+dist/
+build/
+web-build/
+.expo/
+*.tsbuildinfo
+
+# Env & secrets
+.env
+.env.local
+.env.*.local
+*serviceAccountKey*.json
+google-services.json
+GoogleService-Info.plist
+
+# Prisma
+server/prisma/migrations/**/migration_lock.toml.bak
+
+# Uploads (local dev storage fallback)
+server/uploads/
+
+# AI model weights (downloaded at build/run time)
+ai-service/models/*.pt
+ai-service/models/*.onnx
+ai-service/models/*.task
+*.tflite
+
+# Logs & OS
+*.log
+npm-debug.log*
+.DS_Store
+
+# IDE
+.idea/
+.vscode/

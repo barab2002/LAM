@@ -1,0 +1,187 @@
+// LAM — AI Personal Styling & Digital Wardrobe
+// PostgreSQL relational schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum BodyShape {
+  HOURGLASS
+  PEAR
+  APPLE
+  RECTANGLE
+  INVERTED_TRIANGLE
+}
+
+enum Gender {
+  FEMALE
+  MALE
+  NON_BINARY
+  UNSPECIFIED
+}
+
+enum ClothingCategory {
+  TOP
+  BOTTOM
+  DRESS
+  OUTERWEAR
+  SHOES
+  ACCESSORY
+  BAG
+}
+
+enum Season {
+  SPRING
+  SUMMER
+  FALL
+  WINTER
+}
+
+enum LookSource {
+  AI_SUGGESTED
+  USER_CREATED
+}
+
+// ---------- Models ----------
+
+model User {
+  id           String     @id @default(cuid())
+  firebaseUid  String     @unique
+  email        String     @unique
+  displayName  String?
+  photoUrl     String?
+  bodyShape    BodyShape?
+  heightCm     Int?
+  weightKg     Float?
+  gender       Gender     @default(UNSPECIFIED)
+  locationLat  Float?
+  locationLon  Float?
+  locationName String?
+  // Free-form style preferences (favorite styles, disliked materials, ...)
+  stylePrefs   Json?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  items            ClothingItem[]
+  looks            Look[]
+  wearHistory      WearHistory[]
+  feedback         OutfitFeedback[]
+  colorPreferences ColorPreference[]
+
+  @@map("users")
+}
+
+model ClothingItem {
+  id                String           @id @default(cuid())
+  userId            String
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name              String?
+  originalImageUrl  String
+  processedImageUrl String? // background-removed PNG
+  category          ClothingCategory
+  subcategory       String? // e.g. "t-shirt", "jeans", "sneakers"
+  colors            String[] // dominant colors, canonical names, ordered by coverage
+  primaryColor      String?
+  pattern           String? // "solid" | "striped" | "floral" | ...
+  seasons           Season[]
+  brand             String?
+  aiConfidence      Float? // YOLO classification confidence 0..1
+  wearCount         Int              @default(0)
+  lastWornDate      DateTime?
+  isFavorite        Boolean          @default(false)
+  isArchived        Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  lookItems LookItem[]
+
+  @@index([userId, category])
+  @@index([userId, isArchived])
+  @@map("clothing_items")
+}
+
+model Look {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String?
+  source    LookSource @default(USER_CREATED)
+  // Engine score at creation time (AI_SUGGESTED looks)
+  score     Float?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  items       LookItem[]
+  wearHistory WearHistory[]
+  feedback    OutfitFeedback[]
+
+  @@index([userId])
+  @@map("looks")
+}
+
+model LookItem {
+  id     String       @id @default(cuid())
+  lookId String
+  look   Look         @relation(fields: [lookId], references: [id], onDelete: Cascade)
+  itemId String
+  item   ClothingItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([lookId, itemId])
+  @@map("look_items")
+}
+
+model WearHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lookId    String?
+  look      Look?    @relation(fields: [lookId], references: [id], onDelete: SetNull)
+  wornDate  DateTime @db.Date
+  eventType String? // "work" | "party" | "casual" | ...
+  // Snapshot of the weather that day: { tempC, condition, ... }
+  weather   Json?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, wornDate, lookId])
+  @@index([userId, wornDate])
+  @@map("wear_history")
+}
+
+model OutfitFeedback {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lookId    String
+  look      Look     @relation(fields: [lookId], references: [id], onDelete: Cascade)
+  liked     Boolean // swipe right = true, swipe left = false
+  // Context at feedback time: { weather, itemIds, colors }
+  context   Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("outfit_feedback")
+}
+
+// Learned pairwise color-combination weights.
+// (colorA, colorB) stored in canonical (alphabetical) order.
+model ColorPreference {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  colorA    String
+  colorB    String
+  weight    Float    @default(0)
+  samples   Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, colorA, colorB])
+  @@map("color_preferences")
+}
