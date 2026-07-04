@@ -36,6 +36,10 @@ export default function RootLayout() {
               name="rating/[id]"
               options={{ title: 'Style Jury', presentation: 'modal' }}
             />
+            <Stack.Screen
+              name="scan"
+              options={{ title: 'Scan barcode', presentation: 'modal' }}
+            />
           </Stack>
         </AuthProvider>
       </QueryClientProvider>

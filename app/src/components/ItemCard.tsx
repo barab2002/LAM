@@ -39,7 +39,8 @@ export function ItemCard({ item, onPress }: ItemCardProps) {
       <Image
         source={item.processedImageUrl ?? item.originalImageUrl}
         style={[styles.image, { backgroundColor: theme.colors.cardPressed }]}
-        contentFit="cover"
+        // Cutouts (background removed) float on the card; raw photos fill it
+        contentFit={item.processedImageUrl ? 'contain' : 'cover'}
         transition={150}
       />
       {item.isFavorite && <Text style={styles.favorite}>♥</Text>}

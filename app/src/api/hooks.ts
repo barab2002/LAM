@@ -6,9 +6,11 @@ import {
 import { useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import type {
+  BarcodeLookupDto,
   ClothingItemDto,
   CreateRatingRequest,
   DailySuggestionsResponse,
+  SuggestedLookDto,
   DeclutterItemDto,
   FeedbackRequest,
   LogWearRequest,
@@ -92,11 +94,45 @@ export function useDeleteItem() {
   });
 }
 
+// ---------- Barcode add ----------
+
+export function useBarcodeLookup() {
+  const api = useApi();
+  return useMutation({
+    mutationFn: (code: string) => api.get<BarcodeLookupDto>(`/barcode/${code}`),
+  });
+}
+
+export function useAddFromBarcode() {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (barcode: string) =>
+      api.post<{ item: ClothingItemDto; aiTagged: boolean }>('/items/from-barcode', { barcode }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['items'] }),
+  });
+}
+
+// ---------- Pairings ----------
+
+export function useItemPairings(itemId: string) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ['pairings', itemId],
+    queryFn: () => api.get<SuggestedLookDto[]>(`/items/${itemId}/pairings`),
+    enabled: Boolean(itemId),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 // ---------- Looks ----------
 
-export function useLooks() {
+export function useLooks(itemId?: string) {
   const api = useApi();
-  return useQuery({ queryKey: ['looks'], queryFn: () => api.get<LookDto[]>('/looks') });
+  return useQuery({
+    queryKey: ['looks', itemId ?? null],
+    queryFn: () => api.get<LookDto[]>(`/looks${itemId ? `?itemId=${itemId}` : ''}`),
+  });
 }
 
 export function useCreateLook() {
