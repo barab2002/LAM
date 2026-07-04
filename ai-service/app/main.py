@@ -78,17 +78,31 @@ async def classify_endpoint(file: UploadFile = File(...)) -> dict:
 
 @app.post("/analyze", dependencies=[Depends(check_secret)])
 async def analyze_endpoint(file: UploadFile = File(...)) -> dict:
-    """Full auto-wardrobe pipeline: rembg → YOLO → dominant colors."""
+    """Full auto-wardrobe pipeline: rembg → YOLO → dominant colors.
+
+    Degrades per-stage: if background removal is unavailable (e.g. model
+    weights not downloadable), classification and color extraction run on
+    the original image and no cutout is returned.
+    """
     data = await read_image(file)
 
-    cutout = remove_background(data)
-    classification = classify(cutout)
-    colors = extract_colors(cutout)
+    cutout = None
+    try:
+        cutout = remove_background(data)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[analyze] background removal unavailable: {exc}")
+
+    subject = cutout if cutout is not None else Image.open(io.BytesIO(data)).convert("RGBA")
+    classification = classify(subject)
+    colors = extract_colors(subject)
 
     seasons = SEASON_HINTS.get(classification.subcategory or "", ALL_SEASONS)
 
-    buf = io.BytesIO()
-    cutout.save(buf, format="PNG")
+    processed_b64 = None
+    if cutout is not None:
+        buf = io.BytesIO()
+        cutout.save(buf, format="PNG")
+        processed_b64 = base64.b64encode(buf.getvalue()).decode("ascii")
 
     return {
         "category": classification.category,
@@ -98,6 +112,6 @@ async def analyze_endpoint(file: UploadFile = File(...)) -> dict:
         "pattern": None,  # pattern detection: future work
         "seasons": seasons,
         "confidence": round(classification.confidence, 4),
-        "processedImageBase64": base64.b64encode(buf.getvalue()).decode("ascii"),
+        "processedImageBase64": processed_b64,
         "method": classification.method,
     }

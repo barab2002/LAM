@@ -70,3 +70,23 @@ def test_rejects_non_image(monkeypatch):
     client = make_client(monkeypatch)
     res = client.post("/analyze", files={"file": ("evil.txt", b"not an image", "text/plain")})
     assert res.status_code == 400
+
+
+def test_analyze_degrades_without_bg_model(monkeypatch):
+    """When rembg can't load (e.g. weights unavailable), /analyze still
+    classifies and extracts colors from the original image."""
+    monkeypatch.setattr(main, "AI_SECRET", "")
+    monkeypatch.setattr(
+        main, "classify", lambda img: Classification("TOP", None, 0.3, "heuristic")
+    )
+
+    def broken_rembg(data):
+        raise RuntimeError("weights unavailable")
+
+    monkeypatch.setattr(main, "remove_background", broken_rembg)
+    client = TestClient(main.app)
+    res = client.post("/analyze", files={"file": ("shirt.png", png_bytes(), "image/png")})
+    assert res.status_code == 200
+    body = res.json()
+    assert body["processedImageBase64"] is None
+    assert body["primaryColor"] == "red"

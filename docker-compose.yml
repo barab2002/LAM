@@ -1,0 +1,57 @@
+name: lam
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: lam
+      POSTGRES_PASSWORD: lam
+      POSTGRES_DB: lam
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lam"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  server:
+    build: ./server
+    environment:
+      DATABASE_URL: postgresql://lam:lam@postgres:5432/lam
+      PORT: 4000
+      NODE_ENV: production
+      PUBLIC_BASE_URL: http://localhost:8080
+      # Dev stack default — turn OFF and configure Firebase for real deployments
+      DEV_AUTH_BYPASS: "true"
+      AI_SERVICE_URL: http://ai-service:8000
+      AI_SERVICE_SECRET: ${AI_SERVICE_SECRET:-local-dev-secret}
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${FIREBASE_SERVICE_ACCOUNT_JSON:-}
+      FIREBASE_STORAGE_BUCKET: ${FIREBASE_STORAGE_BUCKET:-}
+    volumes:
+      - uploads:/srv/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  ai-service:
+    build: ./ai-service
+    environment:
+      AI_SERVICE_SECRET: ${AI_SERVICE_SECRET:-local-dev-secret}
+      # Point at a fashion-trained checkpoint for better tagging accuracy
+      MODEL_PATH: ${MODEL_PATH:-yolov8n.pt}
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # `npm run build:web` in app/ produces this (expo export --platform web)
+      - ./app/dist:/usr/share/nginx/html:ro
+    depends_on:
+      - server
+
+volumes:
+  pgdata:
+  uploads:
