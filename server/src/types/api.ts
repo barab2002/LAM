@@ -65,6 +65,7 @@ export interface ClothingItemDto {
   pattern: string | null;
   seasons: Season[];
   brand: string | null;
+  barcode: string | null;
   aiConfidence: number | null;
   wearCount: number;
   lastWornDate: string | null;
@@ -150,6 +151,18 @@ export interface FeedbackRequest {
 export interface DeclutterItemDto {
   item: ClothingItemDto;
   reason: string; // e.g. "Not worn in 8 months"
+}
+
+// ---------- Barcode add ----------
+
+export interface BarcodeLookupDto {
+  barcode: string;
+  found: boolean;
+  title: string | null;
+  brand: string | null;
+  imageUrl: string | null;
+  /** Set when this barcode is already in the user's closet */
+  existingItemId: string | null;
 }
 
 // ---------- Style Jury (outfit rating + simulated public opinion) ----------

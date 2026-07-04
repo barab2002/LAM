@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { HttpError } from '../middleware/error';
 import { applyFeedbackToColorPreferences } from '../services/preferenceService';
-import { getDailySuggestions } from '../services/suggestionService';
+import { getDailySuggestions, getPairingsForItem } from '../services/suggestionService';
 import { toLookDto } from '../utils/serializers';
 
 const suggestionsQuerySchema = z.object({
@@ -25,6 +25,13 @@ export async function dailySuggestions(req: Request, res: Response): Promise<voi
   const { lat, lon } = suggestionsQuerySchema.parse(req.query);
   const result = await getDailySuggestions(req.user!, lat, lon);
   res.json(result);
+}
+
+/** GET /items/:id/pairings — "Best to go with" for one garment. */
+export async function itemPairings(req: Request, res: Response): Promise<void> {
+  const pairings = await getPairingsForItem(req.user!, req.params.id);
+  if (pairings === null) throw new HttpError(404, 'Item not found');
+  res.json(pairings);
 }
 
 /**

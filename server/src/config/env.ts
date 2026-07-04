@@ -46,6 +46,12 @@ export const env = {
   },
 
   antiRepeatDays: int(process.env.ANTI_REPEAT_DAYS, 14),
+
+  /** Barcode product lookup — UPCitemdb-compatible API (free trial default) */
+  barcodeApiUrl: (process.env.BARCODE_API_URL ?? 'https://api.upcitemdb.com/prod/trial').replace(
+    /\/$/,
+    '',
+  ),
 };
 
 export type Env = typeof env;

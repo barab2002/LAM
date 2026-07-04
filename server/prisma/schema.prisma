@@ -98,6 +98,7 @@ model ClothingItem {
   pattern           String? // "solid" | "striped" | "floral" | ...
   seasons           Season[]
   brand             String?
+  barcode           String? // EAN/UPC when added via barcode scan
   aiConfidence      Float? // YOLO classification confidence 0..1
   wearCount         Int              @default(0)
   lastWornDate      DateTime?
@@ -110,6 +111,7 @@ model ClothingItem {
 
   @@index([userId, category])
   @@index([userId, isArchived])
+  @@index([userId, barcode])
   @@map("clothing_items")
 }
 

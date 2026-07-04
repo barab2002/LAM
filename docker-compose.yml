@@ -26,6 +26,11 @@ services:
       DEV_AUTH_BYPASS: "true"
       AI_SERVICE_URL: http://ai-service:8000
       AI_SERVICE_SECRET: ${AI_SERVICE_SECRET:-local-dev-secret}
+      BARCODE_API_URL: ${BARCODE_API_URL:-https://api.upcitemdb.com/prod/trial}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_VISION: ${LLM_VISION:-false}
       FIREBASE_SERVICE_ACCOUNT_JSON: ${FIREBASE_SERVICE_ACCOUNT_JSON:-}
       FIREBASE_STORAGE_BUCKET: ${FIREBASE_STORAGE_BUCKET:-}
     volumes:

@@ -22,9 +22,12 @@ apiRouter.use(asyncHandler(requireAuth));
 // Closet
 apiRouter.get('/items', asyncHandler(items.listItems));
 apiRouter.post('/items/upload', upload.single('image'), asyncHandler(items.uploadItem));
+apiRouter.post('/items/from-barcode', asyncHandler(items.addItemFromBarcode));
+apiRouter.get('/items/:id/pairings', asyncHandler(suggestions.itemPairings));
 apiRouter.get('/items/:id', asyncHandler(items.getItem));
 apiRouter.patch('/items/:id', asyncHandler(items.updateItem));
 apiRouter.delete('/items/:id', asyncHandler(items.deleteItem));
+apiRouter.get('/barcode/:code', asyncHandler(items.lookupBarcodeHandler));
 
 // Looks
 apiRouter.get('/looks', asyncHandler(looks.listLooks));

@@ -14,8 +14,12 @@ const createLookSchema = z.object({
 const LOOK_INCLUDE = { items: { include: { item: true } } } as const;
 
 export async function listLooks(req: Request, res: Response): Promise<void> {
+  const itemId = typeof req.query.itemId === 'string' ? req.query.itemId : undefined;
   const looks = await prisma.look.findMany({
-    where: { userId: req.user!.id },
+    where: {
+      userId: req.user!.id,
+      ...(itemId ? { items: { some: { itemId } } } : {}),
+    },
     include: LOOK_INCLUDE,
     orderBy: { createdAt: 'desc' },
   });

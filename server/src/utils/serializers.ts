@@ -22,6 +22,7 @@ export function toItemDto(item: ClothingItem): ClothingItemDto {
     pattern: item.pattern,
     seasons: item.seasons,
     brand: item.brand,
+    barcode: item.barcode,
     aiConfidence: item.aiConfidence,
     wearCount: item.wearCount,
     lastWornDate: item.lastWornDate?.toISOString() ?? null,
