@@ -59,14 +59,16 @@ export default function ItemDetailScreen() {
       contentContainerStyle={styles.content}
     >
       <View style={{ width: '100%', maxWidth: CONTENT_MAX_WIDTH, gap: 16 }}>
-        <Image
-          source={item.processedImageUrl ?? item.originalImageUrl}
-          style={[
-            styles.image,
-            { backgroundColor: theme.colors.card, borderRadius: theme.radius.lg },
-          ]}
-          contentFit="contain"
-        />
+        <View style={[styles.imageWrap, theme.shadow('md')]}>
+          <Image
+            source={item.processedImageUrl ?? item.originalImageUrl}
+            style={[
+              styles.image,
+              { backgroundColor: theme.colors.card, borderRadius: theme.radius.xl },
+            ]}
+            contentFit="contain"
+          />
+        </View>
 
         <View style={styles.statsRow}>
           <Stat label="Worn" value={`${item.wearCount}×`} />
@@ -120,10 +122,11 @@ export default function ItemDetailScreen() {
                 key={look.id}
                 style={[
                   styles.lookRow,
+                  theme.shadow('sm'),
                   {
                     backgroundColor: theme.colors.card,
                     borderColor: theme.colors.border,
-                    borderRadius: theme.radius.md,
+                    borderRadius: theme.radius.lg,
                   },
                 ]}
               >
@@ -177,10 +180,11 @@ export default function ItemDetailScreen() {
       <View
         style={[
           styles.pairing,
+          theme.shadow('sm'),
           {
             backgroundColor: theme.colors.card,
             borderColor: theme.colors.border,
-            borderRadius: theme.radius.md,
+            borderRadius: theme.radius.lg,
           },
         ]}
       >
@@ -227,9 +231,9 @@ export default function ItemDetailScreen() {
         style={[
           styles.stat,
           {
-            backgroundColor: theme.colors.card,
+            backgroundColor: theme.colors.surfaceSunken,
             borderColor: theme.colors.border,
-            borderRadius: theme.radius.sm,
+            borderRadius: theme.radius.full,
           },
         ]}
       >
@@ -243,6 +247,7 @@ export default function ItemDetailScreen() {
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   content: { padding: 20, alignItems: 'center' },
+  imageWrap: { width: '100%', borderRadius: 32 },
   image: { width: '100%', aspectRatio: 0.9 },
   statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   stat: { borderWidth: 1, paddingHorizontal: 12, paddingVertical: 8, gap: 2 },

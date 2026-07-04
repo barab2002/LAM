@@ -26,10 +26,13 @@ export function WeatherHeader({ weather }: { weather: WeatherSnapshot }) {
     <View
       style={[
         styles.container,
-        { backgroundColor: theme.colors.card, borderColor: theme.colors.border, borderRadius: theme.radius.md },
+        theme.shadow('sm'),
+        { backgroundColor: theme.colors.card, borderColor: theme.colors.border, borderRadius: theme.radius.lg },
       ]}
     >
-      <Text style={styles.emoji}>{emoji}</Text>
+      <View style={[styles.iconChip, { backgroundColor: theme.colors.accentMuted }]}>
+        <Text style={styles.emoji}>{emoji}</Text>
+      </View>
       <View>
         <Text style={[theme.text.heading, { color: theme.colors.text }]}>
           {Math.round(weather.tempC)}°C{range}
@@ -46,9 +49,16 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    padding: 14,
+    gap: 14,
+    padding: 16,
     borderWidth: 1,
   },
-  emoji: { fontSize: 30 },
+  iconChip: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emoji: { fontSize: 24 },
 });

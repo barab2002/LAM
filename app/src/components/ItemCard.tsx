@@ -1,8 +1,10 @@
+import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import type { ClothingItemDto } from '../types/api';
-import { useTheme } from '../theme';
+import { motion, useTheme } from '../theme';
 
 interface ItemCardProps {
   item: ClothingItemDto;
@@ -22,43 +24,71 @@ const CATEGORY_LABELS: Record<string, string> = {
 export function ItemCard({ item, onPress }: ItemCardProps) {
   const theme = useTheme();
   const label = item.name || item.subcategory || CATEGORY_LABELS[item.category] || 'Item';
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.card,
-        {
-          backgroundColor: pressed ? theme.colors.cardPressed : theme.colors.card,
-          borderRadius: theme.radius.md,
-          borderColor: theme.colors.border,
-        },
-      ]}
-    >
-      <Image
-        source={item.processedImageUrl ?? item.originalImageUrl}
-        style={[styles.image, { backgroundColor: theme.colors.cardPressed }]}
-        // Cutouts (background removed) float on the card; raw photos fill it
-        contentFit={item.processedImageUrl ? 'contain' : 'cover'}
-        transition={150}
-      />
-      {item.isFavorite && <Text style={styles.favorite}>♥</Text>}
-      <View style={styles.meta}>
-        <Text numberOfLines={1} style={[theme.text.label, { color: theme.colors.text }]}>
-          {label}
-        </Text>
-        <Text style={[theme.text.caption, { color: theme.colors.textMuted }]}>
-          {item.primaryColor ?? '—'} · worn {item.wearCount}×
-        </Text>
-      </View>
-    </Pressable>
+    // Shadow lives on this outer view — a sibling `overflow: hidden` (for the
+    // image's rounded corners) on the same layer would otherwise clip it invisible.
+    <Animated.View style={[styles.wrap, theme.shadow('sm'), animatedStyle]}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={onPress}
+        onPressIn={() => {
+          scale.value = withTiming(0.97, { duration: motion.duration.fast });
+        }}
+        onPressOut={() => {
+          scale.value = withTiming(1, { duration: motion.duration.fast });
+        }}
+        style={[
+          styles.card,
+          {
+            backgroundColor: theme.colors.card,
+            borderRadius: theme.radius.md,
+            borderColor: theme.colors.border,
+          },
+        ]}
+      >
+        <Image
+          source={item.processedImageUrl ?? item.originalImageUrl}
+          style={[styles.image, { backgroundColor: theme.colors.surfaceSunken }]}
+          // Cutouts (background removed) float on the card; raw photos fill it
+          contentFit={item.processedImageUrl ? 'contain' : 'cover'}
+          transition={150}
+        />
+        {item.isFavorite && (
+          <BlurView intensity={40} tint="light" style={styles.favoriteBadge}>
+            <Text style={styles.favorite}>♥</Text>
+          </BlurView>
+        )}
+        <View style={styles.meta}>
+          <Text numberOfLines={1} style={[theme.text.label, { color: theme.colors.text }]}>
+            {label}
+          </Text>
+          <Text style={[theme.text.caption, { color: theme.colors.textMuted }]}>
+            {item.primaryColor ?? '—'} · worn {item.wearCount}×
+          </Text>
+        </View>
+      </Pressable>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { flex: 1, borderWidth: 1, overflow: 'hidden', margin: 6 },
+  wrap: { flex: 1, margin: 6 },
+  card: { borderWidth: 1, overflow: 'hidden' },
   image: { width: '100%', aspectRatio: 0.85 },
-  favorite: { position: 'absolute', top: 8, right: 10, fontSize: 16, color: '#E0564A' },
+  favoriteBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 10,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  favorite: { fontSize: 13, color: '#B3402E' },
   meta: { padding: 10, gap: 2 },
 });

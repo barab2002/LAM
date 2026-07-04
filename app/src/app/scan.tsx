@@ -17,6 +17,7 @@ export default function ScanScreen() {
   const [manualCode, setManualCode] = useState('');
   const [product, setProduct] = useState<BarcodeLookupDto | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [inputFocused, setInputFocused] = useState(false);
 
   const handleCode = useCallback(
     async (code: string) => {
@@ -61,17 +62,21 @@ export default function ScanScreen() {
                   styles.input,
                   theme.text.body,
                   {
-                    backgroundColor: theme.colors.card,
-                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.surfaceSunken,
+                    borderColor: inputFocused ? theme.colors.accent : theme.colors.border,
+                    borderWidth: inputFocused ? 1.5 : 1,
                     color: theme.colors.text,
                     borderRadius: theme.radius.md,
                   },
+                  inputFocused && theme.shadow('sm'),
                 ]}
                 placeholder="e.g. 4002515289693"
-                placeholderTextColor={theme.colors.textMuted}
+                placeholderTextColor={theme.colors.textFaint}
                 keyboardType="number-pad"
                 value={manualCode}
                 onChangeText={setManualCode}
+                onFocus={() => setInputFocused(true)}
+                onBlur={() => setInputFocused(false)}
                 onSubmitEditing={() => manualCode.length >= 8 && handleCode(manualCode)}
               />
               <Button
@@ -89,17 +94,18 @@ export default function ScanScreen() {
           <View
             style={[
               styles.product,
+              theme.shadow('md'),
               {
                 backgroundColor: theme.colors.card,
                 borderColor: theme.colors.border,
-                borderRadius: theme.radius.md,
+                borderRadius: theme.radius.lg,
               },
             ]}
           >
             {product.imageUrl && (
               <Image
                 source={product.imageUrl}
-                style={[styles.productImage, { backgroundColor: theme.colors.cardPressed }]}
+                style={[styles.productImage, { backgroundColor: theme.colors.surfaceSunken }]}
                 contentFit="contain"
               />
             )}

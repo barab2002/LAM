@@ -1,11 +1,14 @@
+import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { useRateOutfit, useUploadItem } from '../../api/hooks';
 import { CaptureCamera } from '../../capture/CaptureCamera';
 import type { CaptureCameraHandle, CapturedPhoto } from '../../capture/types';
 import { CountdownOverlay } from '../../components/CountdownOverlay';
-import { useTheme } from '../../theme';
+import { tapHaptic } from '../../lib/haptics';
+import { motion, useTheme } from '../../theme';
 
 type Phase = 'idle' | 'countdown' | 'uploading' | 'done' | 'error';
 
@@ -22,6 +25,8 @@ export default function CaptureScreen() {
   const [lastItemId, setLastItemId] = useState<string | null>(null);
   const countdownRunning = useRef(false);
   const rateOutfit = useRateOutfit();
+  const shutterScale = useSharedValue(1);
+  const shutterStyle = useAnimatedStyle(() => ({ transform: [{ scale: shutterScale.value }] }));
 
   const rateThisFit = async () => {
     if (!lastItemId || rateOutfit.isPending) return;
@@ -96,7 +101,7 @@ export default function CaptureScreen() {
       <CountdownOverlay count={count} />
 
       {(phase === 'done' || phase === 'error' || phase === 'uploading') && (
-        <View style={[styles.banner, { backgroundColor: theme.colors.overlay }]}>
+        <BlurView intensity={50} tint="dark" style={styles.banner}>
           <Text style={[theme.text.body, { color: '#fff', textAlign: 'center' }]}>
             {phase === 'uploading'
               ? '✂️ Removing background & tagging…'
@@ -107,18 +112,18 @@ export default function CaptureScreen() {
           {phase === 'done' && (
             <View style={styles.bannerActions}>
               <Pressable onPress={rateThisFit} disabled={rateOutfit.isPending}>
-                <Text style={[theme.text.label, { color: '#FFD9CB' }]}>
+                <Text style={[theme.text.label, { color: theme.colors.accent }]}>
                   {rateOutfit.isPending ? 'Jury deliberating…' : '🗣️ Rate this fit'}
                 </Text>
               </Pressable>
               <Pressable onPress={() => router.push('/closet')}>
-                <Text style={[theme.text.label, { color: '#FFD9CB' }]}>
+                <Text style={[theme.text.label, { color: theme.colors.accent }]}>
                   Open closet →
                 </Text>
               </Pressable>
             </View>
           )}
-        </View>
+        </BlurView>
       )}
 
       <View style={styles.controls}>
@@ -129,22 +134,33 @@ export default function CaptureScreen() {
               ? 'Tap the shutter to capture'
               : 'Tap the shutter — 3-second timer'}
         </Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Capture with 3 second timer"
-          onPress={startCountdown}
-          disabled={phase === 'countdown' || phase === 'uploading'}
-          style={({ pressed }) => [
-            styles.shutter,
-            {
-              borderColor: '#FFFFFF',
-              backgroundColor: pressed ? theme.colors.accent : 'rgba(255,255,255,0.25)',
-              opacity: phase === 'countdown' || phase === 'uploading' ? 0.4 : 1,
-            },
-          ]}
-        >
-          <View style={styles.shutterInner} />
-        </Pressable>
+        <Animated.View style={shutterStyle}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Capture with 3 second timer"
+            onPress={() => {
+              tapHaptic('medium');
+              startCountdown();
+            }}
+            onPressIn={() => {
+              shutterScale.value = withTiming(0.9, { duration: motion.duration.fast });
+            }}
+            onPressOut={() => {
+              shutterScale.value = withSpring(1, { damping: 10 });
+            }}
+            disabled={phase === 'countdown' || phase === 'uploading'}
+            style={[
+              styles.shutter,
+              {
+                borderColor: '#FFFFFF',
+                backgroundColor: 'rgba(255,255,255,0.25)',
+                opacity: phase === 'countdown' || phase === 'uploading' ? 0.4 : 1,
+              },
+            ]}
+          >
+            <View style={[styles.shutterInner, { backgroundColor: theme.colors.accent }]} />
+          </Pressable>
+        </Animated.View>
       </View>
     </View>
   );
@@ -159,9 +175,10 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     padding: 14,
-    borderRadius: 14,
+    borderRadius: 20,
     gap: 8,
     alignItems: 'center',
+    overflow: 'hidden',
   },
   bannerActions: { flexDirection: 'row', gap: 24 },
   controls: {

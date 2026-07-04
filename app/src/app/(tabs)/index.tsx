@@ -1,11 +1,13 @@
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useLogWear, useRateOutfit, useSendFeedback, useSuggestions } from '../../api/hooks';
+import { useAuth } from '../../auth/AuthContext';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { OutfitCard } from '../../components/OutfitCard';
+import { OutfitCardSkeleton, Skeleton } from '../../components/Skeleton';
 import { Screen } from '../../components/Screen';
 import { WeatherHeader } from '../../components/WeatherHeader';
 import { useTheme } from '../../theme';
@@ -14,9 +16,25 @@ function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+function greeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 5) return 'Still up?';
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
+function firstName(email: string | null | undefined): string {
+  if (!email) return '';
+  const name = email.split('@')[0].replace(/[._-]+/g, ' ').trim();
+  if (!name) return '';
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
 export default function TodayScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { email } = useAuth();
   const [coords, setCoords] = useState<{ lat: number; lon: number } | undefined>();
   const [cursor, setCursor] = useState(0);
   const [wornConfirmed, setWornConfirmed] = useState(false);
@@ -65,19 +83,30 @@ export default function TodayScreen() {
     setWornConfirmed(true);
   };
 
+  const name = firstName(email);
+
   return (
     <Screen>
+      <Text style={[theme.text.caption, { color: theme.colors.textMuted, marginBottom: 2 }]}>
+        {greeting()}
+        {name ? `, ${name}` : ''}
+      </Text>
       <Text style={[theme.text.title, { color: theme.colors.text, marginBottom: 12 }]}>
-        Today
+        Today's fit
       </Text>
 
-      {data?.weather && (
+      {isLoading && (
+        <View style={{ marginBottom: 16 }}>
+          <Skeleton style={{ height: 78, borderRadius: theme.radius.lg }} />
+        </View>
+      )}
+      {data?.weather && !isLoading && (
         <View style={{ marginBottom: 16 }}>
           <WeatherHeader weather={data.weather} />
         </View>
       )}
 
-      {isLoading && <ActivityIndicator color={theme.colors.accent} style={{ marginTop: 48 }} />}
+      {isLoading && <OutfitCardSkeleton />}
 
       {wornConfirmed && (
         <EmptyState
@@ -104,7 +133,7 @@ export default function TodayScreen() {
           </View>
           <Button
             title={rateOutfit.isPending ? 'The jury is deliberating…' : '🗣️ What will people think?'}
-            variant="secondary"
+            variant="outline"
             onPress={askTheJury}
             loading={rateOutfit.isPending}
           />

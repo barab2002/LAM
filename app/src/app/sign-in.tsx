@@ -1,5 +1,5 @@
 import { Redirect } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -8,9 +8,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useAuth } from '../auth/AuthContext';
 import { Button } from '../components/Button';
-import { CONTENT_MAX_WIDTH, useTheme } from '../theme';
+import { CONTENT_MAX_WIDTH, fonts, motion, useTheme } from '../theme';
 
 export default function SignInScreen() {
   const theme = useTheme();
@@ -20,6 +21,19 @@ export default function SignInScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
+
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(12);
+  useEffect(() => {
+    opacity.value = withTiming(1, { duration: motion.duration.slow, easing: motion.easing });
+    translateY.value = withTiming(0, { duration: motion.duration.slow, easing: motion.easing });
+  }, [opacity, translateY]);
+  const heroStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
 
   if (sessionEmail) return <Redirect href="/" />;
 
@@ -37,15 +51,17 @@ export default function SignInScreen() {
     }
   };
 
-  const inputStyle = [
+  const inputStyle = (focused: boolean) => [
     styles.input,
     theme.text.body,
     {
-      backgroundColor: theme.colors.card,
-      borderColor: theme.colors.border,
+      backgroundColor: theme.colors.surfaceSunken,
+      borderColor: focused ? theme.colors.accent : theme.colors.border,
+      borderWidth: focused ? 1.5 : 1,
       color: theme.colors.text,
       borderRadius: theme.radius.md,
     },
+    focused && theme.shadow('sm'),
   ];
 
   return (
@@ -53,9 +69,16 @@ export default function SignInScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={[styles.root, { backgroundColor: theme.colors.background }]}
     >
-      <View style={[styles.card, { maxWidth: CONTENT_MAX_WIDTH }]}>
-        <Text style={styles.logo}>✨</Text>
-        <Text style={[theme.text.title, { color: theme.colors.text, textAlign: 'center' }]}>
+      <Animated.View style={[styles.card, { maxWidth: CONTENT_MAX_WIDTH }, heroStyle]}>
+        <View style={[styles.mark, { backgroundColor: theme.colors.accentMuted }]}>
+          <Text style={styles.markGlyph}>✨</Text>
+        </View>
+        <Text
+          style={[
+            styles.wordmark,
+            { color: theme.colors.text, fontFamily: fonts.extrabold, textAlign: 'center' },
+          ]}
+        >
           LAM
         </Text>
         <Text
@@ -64,31 +87,39 @@ export default function SignInScreen() {
           Your AI stylist and digital wardrobe
         </Text>
 
+        <View style={{ height: 8 }} />
+
         <TextInput
-          style={inputStyle}
+          style={inputStyle(emailFocused)}
           placeholder="Email"
-          placeholderTextColor={theme.colors.textMuted}
+          placeholderTextColor={theme.colors.textFaint}
           autoCapitalize="none"
           autoComplete="email"
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
+          onFocus={() => setEmailFocused(true)}
+          onBlur={() => setEmailFocused(false)}
         />
         {!devMode && (
           <TextInput
-            style={inputStyle}
+            style={inputStyle(passwordFocused)}
             placeholder="Password"
-            placeholderTextColor={theme.colors.textMuted}
+            placeholderTextColor={theme.colors.textFaint}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
+            onFocus={() => setPasswordFocused(true)}
+            onBlur={() => setPasswordFocused(false)}
           />
         )}
 
         {devMode && (
-          <Text style={[theme.text.caption, { color: theme.colors.textMuted, textAlign: 'center' }]}>
-            Dev mode — no Firebase configured, any email signs you in locally.
-          </Text>
+          <View style={[styles.badge, { backgroundColor: theme.colors.accentMuted, alignSelf: 'center' }]}>
+            <Text style={[theme.text.caption, { color: theme.colors.text }]}>
+              Dev mode — any email signs you in locally
+            </Text>
+          </View>
         )}
         {error && (
           <Text style={[theme.text.caption, { color: theme.colors.danger, textAlign: 'center' }]}>
@@ -96,6 +127,7 @@ export default function SignInScreen() {
           </Text>
         )}
 
+        <View style={{ height: 4 }} />
         <Button
           title={mode === 'in' ? 'Sign in' : 'Create account'}
           onPress={submit}
@@ -108,7 +140,7 @@ export default function SignInScreen() {
             onPress={() => setMode(mode === 'in' ? 'up' : 'in')}
           />
         )}
-      </View>
+      </Animated.View>
     </KeyboardAvoidingView>
   );
 }
@@ -116,6 +148,17 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   card: { width: '100%', gap: 14, alignItems: 'stretch' },
-  logo: { fontSize: 48, textAlign: 'center' },
+  mark: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: 4,
+  },
+  markGlyph: { fontSize: 30 },
+  wordmark: { fontSize: 34, letterSpacing: -1 },
   input: { borderWidth: 1, paddingHorizontal: 16, paddingVertical: 14 },
+  badge: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999 },
 });

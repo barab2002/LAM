@@ -1,8 +1,8 @@
+import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   ScrollView,
@@ -12,11 +12,19 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { useDeclutter, useItems, useUploadItem } from '../../api/hooks';
 import { EmptyState } from '../../components/EmptyState';
 import { Chip } from '../../components/Chip';
 import { ItemCard } from '../../components/ItemCard';
-import { CONTENT_MAX_WIDTH, useTheme } from '../../theme';
+import { ItemCardSkeleton } from '../../components/Skeleton';
+import { tapHaptic } from '../../lib/haptics';
+import { CONTENT_MAX_WIDTH, motion, useTheme } from '../../theme';
 
 const CATEGORY_FILTERS = [
   { label: 'All', value: undefined },
@@ -41,6 +49,23 @@ export default function ClosetScreen() {
   const { data: items, isLoading } = useItems({ category });
   const { data: declutter } = useDeclutter();
   const upload = useUploadItem();
+
+  const fabScale = useSharedValue(1);
+  const sheetProgress = useSharedValue(0);
+
+  useEffect(() => {
+    sheetProgress.value = withTiming(addOpen ? 1 : 0, {
+      duration: motion.duration.base,
+      easing: motion.easing,
+    });
+  }, [addOpen, sheetProgress]);
+
+  const sheetStyle = useAnimatedStyle(() => ({
+    opacity: sheetProgress.value,
+    transform: [{ translateY: (1 - sheetProgress.value) * 24 }],
+  }));
+  const backdropStyle = useAnimatedStyle(() => ({ opacity: sheetProgress.value }));
+  const fabStyle = useAnimatedStyle(() => ({ transform: [{ scale: fabScale.value }] }));
 
   const pickFromGallery = async () => {
     setAddOpen(false);
@@ -78,28 +103,41 @@ export default function ClosetScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingBottom: 40, paddingHorizontal: 14 }}
           ListHeaderComponent={
-            <View style={{ paddingTop: insets.top + 12, gap: 12 }}>
-              <Text style={[theme.text.title, { color: theme.colors.text }]}>Closet</Text>
+            <View style={{ paddingTop: insets.top + 12, gap: 14 }}>
+              <View>
+                <Text style={[theme.text.title, { color: theme.colors.text }]}>Closet</Text>
+                {items && (
+                  <Text style={[theme.text.caption, { color: theme.colors.textMuted }]}>
+                    {items.length} piece{items.length === 1 ? '' : 's'}
+                  </Text>
+                )}
+              </View>
 
               {declutter && declutter.length > 0 && showDeclutter && (
                 <Pressable
                   onPress={() => setShowDeclutter(false)}
                   style={[
                     styles.declutter,
+                    theme.shadow('sm'),
                     {
                       backgroundColor: theme.colors.card,
                       borderColor: theme.colors.border,
-                      borderRadius: theme.radius.md,
+                      borderRadius: theme.radius.lg,
                     },
                   ]}
                 >
-                  <Text style={[theme.text.label, { color: theme.colors.text }]}>
-                    🧹 Declutter idea
-                  </Text>
-                  <Text style={[theme.text.caption, { color: theme.colors.textMuted }]}>
-                    {declutter.length} item{declutter.length > 1 ? 's' : ''} you rarely wear —
-                    “{declutter[0].reason}”. Tap to dismiss.
-                  </Text>
+                  <View style={[styles.declutterIcon, { backgroundColor: theme.colors.accentMuted }]}>
+                    <Text style={{ fontSize: 20 }}>🧹</Text>
+                  </View>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={[theme.text.label, { color: theme.colors.text }]}>
+                      Declutter idea
+                    </Text>
+                    <Text style={[theme.text.caption, { color: theme.colors.textMuted }]}>
+                      {declutter.length} item{declutter.length > 1 ? 's' : ''} you rarely wear —
+                      “{declutter[0].reason}”
+                    </Text>
+                  </View>
                 </Pressable>
               )}
 
@@ -117,7 +155,11 @@ export default function ClosetScreen() {
           }
           ListEmptyComponent={
             isLoading ? (
-              <ActivityIndicator color={theme.colors.accent} style={{ marginTop: 60 }} />
+              <View style={styles.skeletonGrid}>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <ItemCardSkeleton key={i} />
+                ))}
+              </View>
             ) : (
               <EmptyState
                 emoji="🧺"
@@ -135,17 +177,33 @@ export default function ClosetScreen() {
       </View>
 
       {addOpen && (
-        <Pressable style={styles.sheetBackdrop} onPress={() => setAddOpen(false)}>
+        <Animated.View style={[styles.sheetBackdrop, backdropStyle]}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setAddOpen(false)}>
+            <BlurView
+              intensity={20}
+              tint={theme.dark ? 'dark' : 'light'}
+              style={StyleSheet.absoluteFill}
+            />
+          </Pressable>
+        </Animated.View>
+      )}
+
+      {addOpen && (
+        <Animated.View
+          pointerEvents="box-none"
+          style={[styles.sheetWrap, sheetStyle]}
+        >
           <View
             style={[
               styles.sheet,
+              theme.shadow('lg'),
               {
                 backgroundColor: theme.colors.card,
                 borderColor: theme.colors.border,
-                borderRadius: theme.radius.lg,
               },
             ]}
           >
+            <View style={[styles.grabber, { backgroundColor: theme.colors.border }]} />
             <SheetOption
               emoji="🏷️"
               label="Scan barcode"
@@ -171,25 +229,30 @@ export default function ClosetScreen() {
               onPress={pickFromGallery}
             />
           </View>
-        </Pressable>
+        </Animated.View>
       )}
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Add clothing item"
-        onPress={() => setAddOpen((v) => !v)}
-        style={({ pressed }) => [
-          styles.fab,
-          {
-            backgroundColor: pressed ? theme.colors.cardPressed : theme.colors.accent,
-            bottom: insets.bottom + 20,
-          },
-        ]}
-      >
-        <Text style={[styles.fabIcon, { color: theme.colors.onAccent }]}>
-          {upload.isPending ? '…' : '+'}
-        </Text>
-      </Pressable>
+      <Animated.View style={[styles.fabWrap, { bottom: insets.bottom + 20 }, fabStyle]}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Add clothing item"
+          onPress={() => {
+            tapHaptic('medium');
+            setAddOpen((v) => !v);
+          }}
+          onPressIn={() => {
+            fabScale.value = withTiming(0.92, { duration: motion.duration.fast });
+          }}
+          onPressOut={() => {
+            fabScale.value = withSpring(1, { damping: 10 });
+          }}
+          style={[styles.fab, theme.shadow('md'), { backgroundColor: theme.colors.accent }]}
+        >
+          <Text style={[styles.fabIcon, { color: theme.colors.onAccent }]}>
+            {upload.isPending ? '…' : addOpen ? '×' : '+'}
+          </Text>
+        </Pressable>
+      </Animated.View>
     </View>
   );
 
@@ -210,7 +273,10 @@ export default function ClosetScreen() {
         onPress={onPress}
         style={({ pressed }) => [
           styles.sheetOption,
-          pressed && { backgroundColor: theme.colors.cardPressed },
+          {
+            backgroundColor: pressed ? theme.colors.cardPressed : theme.colors.surfaceSunken,
+            borderRadius: theme.radius.md,
+          },
         ]}
       >
         <Text style={styles.sheetEmoji}>{emoji}</Text>
@@ -226,20 +292,22 @@ export default function ClosetScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, alignItems: 'center' },
   column: { flex: 1, width: '100%' },
-  declutter: { borderWidth: 1, padding: 12, gap: 4 },
+  declutter: { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, padding: 14 },
+  declutterIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  skeletonGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 6 },
+  fabWrap: { position: 'absolute', right: 20 },
   fab: {
-    position: 'absolute',
-    right: 20,
     width: 60,
     height: 60,
     borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
   },
   fabIcon: { fontSize: 30, fontWeight: '600', lineHeight: 34 },
   sheetBackdrop: {
@@ -248,8 +316,13 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    justifyContent: 'flex-end',
+    overflow: 'hidden',
+  },
+  sheetWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     alignItems: 'center',
     padding: 16,
   },
@@ -257,15 +330,27 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: CONTENT_MAX_WIDTH,
     borderWidth: 1,
-    padding: 8,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    padding: 10,
+    paddingTop: 12,
+    gap: 4,
     marginBottom: 88,
+  },
+  grabber: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 8,
   },
   sheetOption: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     padding: 12,
-    borderRadius: 12,
   },
   sheetEmoji: { fontSize: 24 },
 });

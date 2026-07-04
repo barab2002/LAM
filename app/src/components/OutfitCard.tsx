@@ -10,7 +10,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import type { SuggestedLookDto } from '../types/api';
-import { useTheme } from '../theme';
+import { fonts, useTheme } from '../theme';
 
 interface OutfitCardProps {
   suggestion: SuggestedLookDto;
@@ -67,6 +67,7 @@ export function OutfitCard({ suggestion, onLike, onDislike }: OutfitCardProps) {
       <Animated.View
         style={[
           styles.card,
+          theme.shadow('md'),
           {
             backgroundColor: theme.colors.card,
             borderColor: theme.colors.border,
@@ -82,7 +83,7 @@ export function OutfitCard({ suggestion, onLike, onDislike }: OutfitCardProps) {
               source={item.processedImageUrl ?? item.originalImageUrl}
               style={[
                 styles.itemImage,
-                { backgroundColor: theme.colors.cardPressed, borderRadius: theme.radius.sm },
+                { backgroundColor: theme.colors.surfaceSunken, borderRadius: theme.radius.sm },
                 items.length === 1 && { flexBasis: '100%' },
               ]}
               contentFit="contain"
@@ -96,19 +97,27 @@ export function OutfitCard({ suggestion, onLike, onDislike }: OutfitCardProps) {
               key={reason}
               style={[
                 styles.reason,
-                { backgroundColor: theme.colors.cardPressed, borderRadius: theme.radius.full },
+                { backgroundColor: theme.colors.accentMuted, borderRadius: theme.radius.full },
               ]}
             >
-              <Text style={[theme.text.caption, { color: theme.colors.textMuted }]}>{reason}</Text>
+              <Text style={[theme.text.caption, { color: theme.colors.text }]}>{reason}</Text>
             </View>
           ))}
         </View>
 
-        <Animated.View style={[styles.stamp, styles.stampLike, likeStyle]}>
-          <Text style={styles.stampText}>LOVE IT</Text>
+        <Animated.View
+          style={[styles.stamp, { borderColor: theme.colors.positive, left: 18 }, likeStyle]}
+        >
+          <Text style={[styles.stampText, { color: theme.colors.positive }]}>LOVE IT</Text>
         </Animated.View>
-        <Animated.View style={[styles.stamp, styles.stampNope, nopeStyle]}>
-          <Text style={styles.stampText}>PASS</Text>
+        <Animated.View
+          style={[
+            styles.stamp,
+            { borderColor: theme.colors.danger, right: 18, transform: [{ rotateZ: '8deg' }] },
+            nopeStyle,
+          ]}
+        >
+          <Text style={[styles.stampText, { color: theme.colors.danger }]}>PASS</Text>
         </Animated.View>
       </Animated.View>
     </GestureDetector>
@@ -116,21 +125,19 @@ export function OutfitCard({ suggestion, onLike, onDislike }: OutfitCardProps) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderWidth: 1, padding: 14, gap: 12 },
+  card: { borderWidth: 1, padding: 18, gap: 14 },
   imagesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   itemImage: { flexGrow: 1, flexBasis: '45%', aspectRatio: 0.9 },
   reasonsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  reason: { paddingHorizontal: 10, paddingVertical: 5 },
+  reason: { paddingHorizontal: 12, paddingVertical: 6 },
   stamp: {
     position: 'absolute',
     top: 18,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 6,
-    borderWidth: 3,
-    borderRadius: 8,
-    transform: [{ rotateZ: '-12deg' }],
+    borderWidth: 1.5,
+    borderRadius: 6,
+    transform: [{ rotateZ: '-8deg' }],
   },
-  stampLike: { left: 18, borderColor: '#3E7C4F' },
-  stampNope: { right: 18, borderColor: '#B3402E', transform: [{ rotateZ: '12deg' }] },
-  stampText: { fontSize: 18, fontWeight: '800', color: '#FFFFFF' },
+  stampText: { fontSize: 13, fontFamily: fonts.bold, letterSpacing: 2 },
 });

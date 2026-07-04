@@ -1,11 +1,13 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
-import { useTheme } from '../theme';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { tapHaptic } from '../lib/haptics';
+import { motion, useTheme } from '../theme';
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   disabled?: boolean;
   loading?: boolean;
   compact?: boolean;
@@ -20,6 +22,7 @@ export function Button({
   compact,
 }: ButtonProps) {
   const theme = useTheme();
+  const scale = useSharedValue(1);
 
   const background =
     variant === 'primary'
@@ -28,33 +31,54 @@ export function Button({
         ? theme.colors.danger
         : variant === 'secondary'
           ? theme.colors.card
-          : 'transparent';
+          : variant === 'outline'
+            ? theme.colors.accentMuted
+            : 'transparent';
   const color =
-    variant === 'primary' || variant === 'danger' ? theme.colors.onAccent : theme.colors.text;
+    variant === 'primary' || variant === 'danger'
+      ? theme.colors.onAccent
+      : variant === 'ghost' || variant === 'outline'
+        ? theme.colors.accent
+        : theme.colors.text;
+  const borderColor = variant === 'outline' ? theme.colors.accent : theme.colors.border;
+
+  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      disabled={disabled || loading}
-      style={({ pressed }) => [
-        styles.base,
-        compact && styles.compact,
-        {
-          backgroundColor: pressed ? `${background}CC` : background,
-          borderRadius: theme.radius.full,
-          borderWidth: variant === 'secondary' ? 1 : 0,
-          borderColor: theme.colors.border,
-          opacity: disabled ? 0.5 : 1,
-        },
-      ]}
-    >
-      {loading ? (
-        <ActivityIndicator color={color} />
-      ) : (
-        <Text style={[theme.text.label, { color, fontSize: compact ? 13 : 15 }]}>{title}</Text>
-      )}
-    </Pressable>
+    <Animated.View style={animatedStyle}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => {
+          tapHaptic(variant === 'primary' ? 'medium' : 'light');
+          onPress();
+        }}
+        onPressIn={() => {
+          scale.value = withTiming(0.97, { duration: motion.duration.fast });
+        }}
+        onPressOut={() => {
+          scale.value = withTiming(1, { duration: motion.duration.fast });
+        }}
+        disabled={disabled || loading}
+        style={[
+          styles.base,
+          compact && styles.compact,
+          variant === 'primary' && theme.shadow('sm'),
+          {
+            backgroundColor: background,
+            borderRadius: theme.radius.full,
+            borderWidth: variant === 'secondary' || variant === 'outline' ? 1 : 0,
+            borderColor,
+            opacity: disabled ? 0.5 : 1,
+          },
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator color={color} />
+        ) : (
+          <Text style={[theme.text.label, { color, fontSize: compact ? 13 : 15 }]}>{title}</Text>
+        )}
+      </Pressable>
+    </Animated.View>
   );
 }
 

@@ -1,19 +1,20 @@
+import { BlurView } from 'expo-blur';
 import React, { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { useTheme } from '../theme';
+import { fonts, useTheme } from '../theme';
 
 interface CountdownOverlayProps {
   /** Seconds remaining; render nothing when null */
   count: number | null;
 }
 
-/** Big animated 3-2-1 shown over the camera preview. */
+/** Big animated 3-2-1 shown over the camera preview, on a soft glass backdrop. */
 export function CountdownOverlay({ count }: CountdownOverlayProps) {
   const theme = useTheme();
   const scale = useSharedValue(1);
@@ -29,12 +30,14 @@ export function CountdownOverlay({ count }: CountdownOverlayProps) {
   if (count === null) return null;
 
   return (
-    <View pointerEvents="none" style={[styles.overlay, { backgroundColor: theme.colors.overlay }]}>
+    <BlurView intensity={30} tint="dark" style={styles.overlay} pointerEvents="none">
       <Animated.View style={animatedStyle}>
-        <Text style={styles.number}>{count}</Text>
+        <Text style={[styles.number, { fontFamily: fonts.extrabold }]}>{count}</Text>
       </Animated.View>
-      <Text style={[theme.text.heading, styles.hint]}>Strike your pose</Text>
-    </View>
+      <Text style={[theme.text.heading, styles.hint, { fontFamily: fonts.semibold }]}>
+        Strike your pose
+      </Text>
+    </BlurView>
   );
 }
 
@@ -49,6 +52,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  number: { fontSize: 120, fontWeight: '800', color: '#FFFFFF' },
+  number: { fontSize: 120, color: '#FFFFFF' },
   hint: { color: '#FFFFFFDD' },
 });

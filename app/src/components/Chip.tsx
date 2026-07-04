@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { useTheme } from '../theme';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { motion, useTheme } from '../theme';
 
 interface ChipProps {
   label: string;
@@ -10,32 +11,39 @@ interface ChipProps {
 
 export function Chip({ label, selected, onPress }: ChipProps) {
   const theme = useTheme();
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.chip,
-        {
-          backgroundColor: selected
-            ? theme.colors.accent
-            : pressed
-              ? theme.colors.cardPressed
-              : theme.colors.card,
-          borderColor: selected ? theme.colors.accent : theme.colors.border,
-          borderRadius: theme.radius.full,
-        },
-      ]}
-    >
-      <Text
+    <Animated.View style={animatedStyle}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={onPress}
+        onPressIn={() => {
+          scale.value = withTiming(0.95, { duration: motion.duration.fast });
+        }}
+        onPressOut={() => {
+          scale.value = withTiming(1, { duration: motion.duration.fast });
+        }}
         style={[
-          theme.text.label,
-          { color: selected ? theme.colors.onAccent : theme.colors.textMuted },
+          styles.chip,
+          {
+            backgroundColor: selected ? theme.colors.accent : theme.colors.surfaceSunken,
+            borderColor: selected ? theme.colors.accent : theme.colors.border,
+            borderRadius: theme.radius.full,
+          },
         ]}
       >
-        {label}
-      </Text>
-    </Pressable>
+        <Text
+          style={[
+            theme.text.label,
+            { color: selected ? theme.colors.onAccent : theme.colors.textMuted },
+          ]}
+        >
+          {label}
+        </Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 

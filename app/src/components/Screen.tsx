@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CONTENT_MAX_WIDTH, useTheme } from '../theme';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { CONTENT_MAX_WIDTH, motion, useTheme } from '../theme';
 
 interface ScreenProps {
   children: React.ReactNode;
@@ -14,23 +15,37 @@ interface ScreenProps {
 
 /**
  * Mobile-first screen shell: safe-area aware, and on wide (web) viewports
- * the content column stays phone-width and centered.
+ * the content column stays phone-width and centered. Fades and rises in on
+ * mount so screens arrive softly instead of popping in.
  */
 export function Screen({ children, scroll = true, style, bleed }: ScreenProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(8);
+
+  useEffect(() => {
+    opacity.value = withTiming(1, { duration: motion.duration.base, easing: motion.easing });
+    translateY.value = withTiming(0, { duration: motion.duration.base, easing: motion.easing });
+  }, [opacity, translateY]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
 
   const inner = (
-    <View
+    <Animated.View
       style={[
         styles.column,
         { maxWidth: bleed ? undefined : CONTENT_MAX_WIDTH },
-        !bleed && { paddingHorizontal: theme.spacing(5) },
+        !bleed && { paddingHorizontal: theme.spacing(6) },
+        animatedStyle,
         style,
       ]}
     >
       {children}
-    </View>
+    </Animated.View>
   );
 
   if (!scroll) {

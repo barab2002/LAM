@@ -5,7 +5,7 @@ import { Calendar, DateData } from 'react-native-calendars';
 import { useWearHistory } from '../../api/hooks';
 import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
-import { useTheme } from '../../theme';
+import { fonts, useTheme } from '../../theme';
 
 function currentMonth(): string {
   return new Date().toISOString().slice(0, 7);
@@ -46,7 +46,8 @@ export default function CalendarScreen() {
       <View
         style={[
           styles.calendarWrap,
-          { borderColor: theme.colors.border, borderRadius: theme.radius.md },
+          theme.shadow('sm'),
+          { borderColor: theme.colors.border, borderRadius: theme.radius.lg },
         ]}
       >
         <Calendar
@@ -61,7 +62,12 @@ export default function CalendarScreen() {
             textSectionTitleColor: theme.colors.textMuted,
             todayTextColor: theme.colors.accent,
             arrowColor: theme.colors.accent,
-            textDisabledColor: theme.colors.border,
+            textDisabledColor: theme.colors.textFaint,
+            selectedDayBackgroundColor: theme.colors.accent,
+            selectedDayTextColor: theme.colors.onAccent,
+            textDayFontFamily: fonts.medium,
+            textMonthFontFamily: fonts.semibold,
+            textDayHeaderFontFamily: fonts.semibold,
           }}
         />
       </View>
@@ -82,10 +88,11 @@ export default function CalendarScreen() {
           key={entry.id}
           style={[
             styles.entry,
+            theme.shadow('sm'),
             {
               backgroundColor: theme.colors.card,
               borderColor: theme.colors.border,
-              borderRadius: theme.radius.md,
+              borderRadius: theme.radius.lg,
             },
           ]}
         >
