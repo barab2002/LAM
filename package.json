@@ -1,0 +1,26 @@
+{
+  "name": "lam",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LAM — AI personal styling & digital wardrobe (Expo app + Express API + Python AI service)",
+  "author": "barab2002",
+  "license": "MIT",
+  "scripts": {
+    "setup": "npm --prefix server install && npm --prefix app install && npm run setup:ai",
+    "setup:ai": "python3 -m venv ai-service/.venv && ai-service/.venv/bin/pip install -r ai-service/requirements-dev.txt",
+    "dev:server": "npm --prefix server run dev",
+    "dev:app": "npm --prefix app run start",
+    "dev:ai": "ai-service/.venv/bin/uvicorn app.main:app --reload --port 8000 --app-dir ai-service",
+    "db:migrate": "npm --prefix server run prisma:migrate",
+    "typecheck": "npm --prefix server run typecheck && npm --prefix app run typecheck",
+    "test": "npm run test:server && npm run test:app && npm run test:ai",
+    "test:server": "npm --prefix server test",
+    "test:app": "npm --prefix app test",
+    "test:ai": "cd ai-service && .venv/bin/python -m pytest tests -q",
+    "build:web": "npm --prefix app run build:web",
+    "stack": "npm run build:web && docker compose up --build"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
