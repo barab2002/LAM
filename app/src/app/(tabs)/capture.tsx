@@ -7,6 +7,7 @@ import { useRateOutfit, useUploadItem } from '../../api/hooks';
 import { CaptureCamera } from '../../capture/CaptureCamera';
 import type { CaptureCameraHandle, CapturedPhoto } from '../../capture/types';
 import { CountdownOverlay } from '../../components/CountdownOverlay';
+import { Icon } from '../../components/Icon';
 import { tapHaptic } from '../../lib/haptics';
 import { motion, useTheme } from '../../theme';
 
@@ -102,24 +103,41 @@ export default function CaptureScreen() {
 
       {(phase === 'done' || phase === 'error' || phase === 'uploading') && (
         <BlurView intensity={50} tint="dark" style={styles.banner}>
-          <Text style={[theme.text.body, { color: '#fff', textAlign: 'center' }]}>
-            {phase === 'uploading'
-              ? '✂️ Removing background & tagging…'
-              : phase === 'error'
-                ? 'Upload failed — is the server running?'
-                : `✅ Added to your closet. ${lastTagged}`}
-          </Text>
+          <View style={styles.bannerRow}>
+            <Icon
+              name={
+                phase === 'uploading'
+                  ? 'cut-outline'
+                  : phase === 'error'
+                    ? 'alert-circle-outline'
+                    : 'checkmark-circle-outline'
+              }
+              size={theme.iconSize.md}
+              color="#fff"
+            />
+            <Text style={[theme.text.body, { color: '#fff', textAlign: 'center', flexShrink: 1 }]}>
+              {phase === 'uploading'
+                ? 'Removing background & tagging…'
+                : phase === 'error'
+                  ? 'Upload failed — is the server running?'
+                  : `Added to your closet. ${lastTagged}`}
+            </Text>
+          </View>
           {phase === 'done' && (
             <View style={styles.bannerActions}>
-              <Pressable onPress={rateThisFit} disabled={rateOutfit.isPending}>
+              <Pressable
+                style={styles.bannerAction}
+                onPress={rateThisFit}
+                disabled={rateOutfit.isPending}
+              >
+                <Icon name="chatbubbles-outline" size={16} color={theme.colors.accent} />
                 <Text style={[theme.text.label, { color: theme.colors.accent }]}>
-                  {rateOutfit.isPending ? 'Jury deliberating…' : '🗣️ Rate this fit'}
+                  {rateOutfit.isPending ? 'Jury deliberating…' : 'Rate this fit'}
                 </Text>
               </Pressable>
-              <Pressable onPress={() => router.push('/closet')}>
-                <Text style={[theme.text.label, { color: theme.colors.accent }]}>
-                  Open closet →
-                </Text>
+              <Pressable style={styles.bannerAction} onPress={() => router.push('/closet')}>
+                <Text style={[theme.text.label, { color: theme.colors.accent }]}>Open closet</Text>
+                <Icon name="arrow-forward" size={16} color={theme.colors.accent} />
               </Pressable>
             </View>
           )}
@@ -129,7 +147,7 @@ export default function CaptureScreen() {
       <View style={styles.controls}>
         <Text style={[theme.text.caption, styles.hint]}>
           {gestureAvailable
-            ? '✌️ Show a V sign — or tap the shutter'
+            ? 'Show a V sign — or tap the shutter'
             : Platform.OS === 'web'
               ? 'Tap the shutter to capture'
               : 'Tap the shutter — 3-second timer'}
@@ -180,7 +198,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     overflow: 'hidden',
   },
+  bannerRow: { flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'center' },
   bannerActions: { flexDirection: 'row', gap: 24 },
+  bannerAction: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   controls: {
     position: 'absolute',
     bottom: 36,

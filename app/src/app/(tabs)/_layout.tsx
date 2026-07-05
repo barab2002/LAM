@@ -4,9 +4,18 @@ import React, { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useAuth } from '../../auth/AuthContext';
+import { Icon, IconName } from '../../components/Icon';
 import { motion, useTheme } from '../../theme';
 
-function TabIcon({ glyph, focused }: { glyph: string; focused: boolean }) {
+function TabIcon({
+  outline,
+  filled,
+  focused,
+}: {
+  outline: IconName;
+  filled: IconName;
+  focused: boolean;
+}) {
   const theme = useTheme();
   const progress = useSharedValue(focused ? 1 : 0);
 
@@ -25,7 +34,13 @@ function TabIcon({ glyph, focused }: { glyph: string; focused: boolean }) {
 
   return (
     <View style={styles.iconWrap}>
-      <Animated.Text style={[styles.glyph, iconStyle]}>{glyph}</Animated.Text>
+      <Animated.View style={iconStyle}>
+        <Icon
+          name={focused ? filled : outline}
+          size={theme.iconSize.lg}
+          color={focused ? theme.colors.accent : theme.colors.textMuted}
+        />
+      </Animated.View>
       <Animated.View
         style={[styles.dot, { backgroundColor: theme.colors.accent }, dotStyle]}
       />
@@ -74,35 +89,45 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Today',
-          tabBarIcon: ({ focused }) => <TabIcon glyph="✨" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon outline="sparkles-outline" filled="sparkles" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="closet"
         options={{
           title: 'Closet',
-          tabBarIcon: ({ focused }) => <TabIcon glyph="👗" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon outline="shirt-outline" filled="shirt" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="capture"
         options={{
           title: 'Capture',
-          tabBarIcon: ({ focused }) => <TabIcon glyph="📸" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon outline="camera-outline" filled="camera" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="calendar"
         options={{
           title: 'Calendar',
-          tabBarIcon: ({ focused }) => <TabIcon glyph="🗓️" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon outline="calendar-outline" filled="calendar" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ focused }) => <TabIcon glyph="👤" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon outline="person-outline" filled="person" focused={focused} />
+          ),
         }}
       />
     </Tabs>
@@ -111,6 +136,5 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   iconWrap: { alignItems: 'center', gap: 3 },
-  glyph: { fontSize: 21 },
   dot: { width: 4, height: 4, borderRadius: 2 },
 });

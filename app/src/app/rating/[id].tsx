@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useRating } from '../../api/hooks';
+import { Icon } from '../../components/Icon';
+import { personaIconFor } from '../../lib/personaIcons';
 import { CONTENT_MAX_WIDTH, fonts, motion, Theme, useTheme } from '../../theme';
 import type { PersonaReactionDto } from '../../types/api';
 
@@ -32,6 +34,7 @@ function useCountUp(value: number, durationMs = 700): number {
 
 function PersonaCard({ persona }: { persona: PersonaReactionDto }) {
   const theme = useTheme();
+  const icon = personaIconFor(persona.name);
   return (
     <View
       style={[
@@ -46,7 +49,11 @@ function PersonaCard({ persona }: { persona: PersonaReactionDto }) {
     >
       <View style={styles.personaHeader}>
         <View style={[styles.personaAvatar, { backgroundColor: theme.colors.accentMuted }]}>
-          <Text style={styles.personaEmoji}>{persona.emoji}</Text>
+          {icon ? (
+            <Icon name={icon} size={theme.iconSize.md} color={theme.colors.accent} />
+          ) : (
+            <Text style={styles.personaEmoji}>{persona.emoji}</Text>
+          )}
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[theme.text.label, { color: theme.colors.text }]}>{persona.name}</Text>
@@ -140,8 +147,9 @@ export default function RatingScreen() {
               { backgroundColor: theme.colors.accentMuted, alignSelf: 'center' },
             ]}
           >
-            <Text style={[theme.text.caption, { color: theme.colors.text }]}>
-              ⚙️ Offline jury — connect an LLM backend for live opinions (see README)
+            <Icon name="hardware-chip-outline" size={14} color={theme.colors.text} />
+            <Text style={[theme.text.caption, { color: theme.colors.text, flexShrink: 1 }]}>
+              Offline jury — connect an LLM backend for live opinions (see README)
             </Text>
           </View>
         )}
@@ -170,7 +178,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scoreNumber: { fontSize: 46 },
-  badge: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999 },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
   persona: { borderWidth: 1, padding: 16, gap: 10 },
   personaHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   personaAvatar: {

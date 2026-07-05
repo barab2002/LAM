@@ -1,8 +1,9 @@
 import React from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { tapHaptic } from '../lib/haptics';
 import { motion, useTheme } from '../theme';
+import { Icon, IconName } from './Icon';
 
 interface ButtonProps {
   title: string;
@@ -11,6 +12,7 @@ interface ButtonProps {
   disabled?: boolean;
   loading?: boolean;
   compact?: boolean;
+  icon?: IconName;
 }
 
 export function Button({
@@ -20,6 +22,7 @@ export function Button({
   disabled,
   loading,
   compact,
+  icon,
 }: ButtonProps) {
   const theme = useTheme();
   const scale = useSharedValue(1);
@@ -75,7 +78,10 @@ export function Button({
         {loading ? (
           <ActivityIndicator color={color} />
         ) : (
-          <Text style={[theme.text.label, { color, fontSize: compact ? 13 : 15 }]}>{title}</Text>
+          <View style={styles.content}>
+            {icon && <Icon name={icon} size={compact ? 15 : 17} color={color} />}
+            <Text style={[theme.text.label, { color, fontSize: compact ? 13 : 15 }]}>{title}</Text>
+          </View>
         )}
       </Pressable>
     </Animated.View>
@@ -91,4 +97,5 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   compact: { paddingVertical: 8, paddingHorizontal: 16, minHeight: 36 },
+  content: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 });

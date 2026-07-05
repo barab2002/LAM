@@ -4,6 +4,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import type { ClothingItemDto } from '../types/api';
+import { Icon } from './Icon';
 import { motion, useTheme } from '../theme';
 
 interface ItemCardProps {
@@ -58,7 +59,7 @@ export function ItemCard({ item, onPress }: ItemCardProps) {
         />
         {item.isFavorite && (
           <BlurView intensity={40} tint="light" style={styles.favoriteBadge}>
-            <Text style={styles.favorite}>♥</Text>
+            <Icon name="heart" size={14} color={theme.colors.danger} />
           </BlurView>
         )}
         <View style={styles.meta}>
@@ -89,6 +90,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  favorite: { fontSize: 13, color: '#B3402E' },
   meta: { padding: 10, gap: 2 },
 });

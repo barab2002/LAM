@@ -52,6 +52,7 @@ export interface Theme {
   };
   spacing: (n: number) => number;
   radius: { sm: number; md: number; lg: number; xl: number; full: number };
+  iconSize: { sm: number; md: number; lg: number; xl: number };
   text: {
     title: { fontSize: number; fontFamily: string; letterSpacing: number };
     heading: { fontSize: number; fontFamily: string; letterSpacing: number };
@@ -101,6 +102,7 @@ function shadowRecipe(color: string) {
 const base = {
   spacing: (n: number) => n * 4,
   radius: { sm: 10, md: 18, lg: 26, xl: 32, full: 999 },
+  iconSize: { sm: 16, md: 20, lg: 24, xl: 32 },
   text: {
     title: { fontSize: 30, fontFamily: fonts.extrabold, letterSpacing: -0.6 },
     heading: { fontSize: 18, fontFamily: fonts.semibold, letterSpacing: -0.2 },

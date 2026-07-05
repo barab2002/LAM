@@ -3,18 +3,20 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useProfile, useUpdateProfile } from '../../api/hooks';
 import { useAuth } from '../../auth/AuthContext';
+import { BodyShapeIcon } from '../../components/BodyShapeIcon';
 import { Button } from '../../components/Button';
+import { Icon } from '../../components/Icon';
 import { Screen } from '../../components/Screen';
 import { tapHaptic } from '../../lib/haptics';
 import type { BodyShape } from '../../types/api';
 import { useTheme } from '../../theme';
 
-const BODY_SHAPES: { value: BodyShape; label: string; silhouette: string; hint: string }[] = [
-  { value: 'HOURGLASS', label: 'Hourglass', silhouette: '⏳', hint: 'Balanced bust & hips, defined waist' },
-  { value: 'PEAR', label: 'Pear', silhouette: '🍐', hint: 'Hips wider than shoulders' },
-  { value: 'APPLE', label: 'Apple', silhouette: '🍎', hint: 'Fuller middle, slimmer legs' },
-  { value: 'RECTANGLE', label: 'Rectangle', silhouette: '▭', hint: 'Similar bust, waist & hips' },
-  { value: 'INVERTED_TRIANGLE', label: 'Inv. Triangle', silhouette: '🔻', hint: 'Shoulders wider than hips' },
+const BODY_SHAPES: { value: BodyShape; label: string; hint: string }[] = [
+  { value: 'HOURGLASS', label: 'Hourglass', hint: 'Balanced bust & hips, defined waist' },
+  { value: 'PEAR', label: 'Pear', hint: 'Hips wider than shoulders' },
+  { value: 'APPLE', label: 'Apple', hint: 'Fuller middle, slimmer legs' },
+  { value: 'RECTANGLE', label: 'Rectangle', hint: 'Similar bust, waist & hips' },
+  { value: 'INVERTED_TRIANGLE', label: 'Inv. Triangle', hint: 'Shoulders wider than hips' },
 ];
 
 export default function ProfileScreen() {
@@ -52,7 +54,7 @@ export default function ProfileScreen() {
     <Screen>
       <View style={styles.identity}>
         <View style={[styles.avatar, { backgroundColor: theme.colors.accentMuted }]}>
-          <Text style={{ fontSize: 26 }}>👤</Text>
+          <Icon name="person" size={theme.iconSize.lg} color={theme.colors.accent} />
         </View>
         <View>
           <Text style={[theme.text.title, { color: theme.colors.text, fontSize: 24 }]}>
@@ -94,7 +96,10 @@ export default function ProfileScreen() {
                   },
                 ]}
               >
-                <Text style={styles.silhouette}>{shape.silhouette}</Text>
+                <BodyShapeIcon
+                  shape={shape.value}
+                  color={selected ? theme.colors.accent : theme.colors.textMuted}
+                />
                 <Text
                   style={[
                     theme.text.label,
@@ -157,5 +162,4 @@ const styles = StyleSheet.create({
     padding: 12,
     gap: 4,
   },
-  silhouette: { fontSize: 28 },
 });

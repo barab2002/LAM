@@ -1,22 +1,23 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { WeatherSnapshot } from '../types/api';
+import { Icon, IconName } from './Icon';
 import { useTheme } from '../theme';
 
-const CONDITION_EMOJI: Record<string, string> = {
-  clear: '☀️',
-  'partly-cloudy': '⛅',
-  cloudy: '☁️',
-  fog: '🌫️',
-  drizzle: '🌦️',
-  rain: '🌧️',
-  snow: '❄️',
-  thunderstorm: '⛈️',
+const CONDITION_ICON: Record<string, IconName> = {
+  clear: 'sunny-outline',
+  'partly-cloudy': 'partly-sunny-outline',
+  cloudy: 'cloudy-outline',
+  fog: 'cloudy-outline',
+  drizzle: 'rainy-outline',
+  rain: 'rainy-outline',
+  snow: 'snow-outline',
+  thunderstorm: 'thunderstorm-outline',
 };
 
 export function WeatherHeader({ weather }: { weather: WeatherSnapshot }) {
   const theme = useTheme();
-  const emoji = CONDITION_EMOJI[weather.condition] ?? '🌤️';
+  const icon = CONDITION_ICON[weather.condition] ?? 'partly-sunny-outline';
   const range =
     weather.tempMinC != null && weather.tempMaxC != null
       ? ` · ${Math.round(weather.tempMinC)}–${Math.round(weather.tempMaxC)}°`
@@ -31,7 +32,7 @@ export function WeatherHeader({ weather }: { weather: WeatherSnapshot }) {
       ]}
     >
       <View style={[styles.iconChip, { backgroundColor: theme.colors.accentMuted }]}>
-        <Text style={styles.emoji}>{emoji}</Text>
+        <Icon name={icon} size={theme.iconSize.lg} color={theme.colors.accent} />
       </View>
       <View>
         <Text style={[theme.text.heading, { color: theme.colors.text }]}>
@@ -60,5 +61,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emoji: { fontSize: 24 },
 });

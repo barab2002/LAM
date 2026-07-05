@@ -110,7 +110,7 @@ export default function TodayScreen() {
 
       {wornConfirmed && (
         <EmptyState
-          emoji="🎉"
+          icon="checkmark-circle-outline"
           title="Outfit logged!"
           message="Today's look is saved to your calendar. Check back tomorrow for fresh ideas."
           actionTitle="See calendar"
@@ -127,12 +127,13 @@ export default function TodayScreen() {
             onDislike={() => rate(false)}
           />
           <View style={styles.actions}>
-            <Button title="✕ Pass" variant="secondary" onPress={() => rate(false)} />
+            <Button title="Pass" icon="close" variant="secondary" onPress={() => rate(false)} />
             <Button title="Wear this today" onPress={wearIt} loading={logWear.isPending} />
-            <Button title="♥ Like" variant="secondary" onPress={() => rate(true)} />
+            <Button title="Like" icon="heart" variant="secondary" onPress={() => rate(true)} />
           </View>
           <Button
-            title={rateOutfit.isPending ? 'The jury is deliberating…' : '🗣️ What will people think?'}
+            title={rateOutfit.isPending ? 'The jury is deliberating…' : 'What will people think?'}
+            icon="chatbubbles-outline"
             variant="outline"
             onPress={askTheJury}
             loading={rateOutfit.isPending}
@@ -145,7 +146,7 @@ export default function TodayScreen() {
 
       {!isLoading && !wornConfirmed && !current && suggestions.length > 0 && (
         <EmptyState
-          emoji="🧠"
+          icon="bulb-outline"
           title="Got it — taste noted"
           message="You rated every suggestion. New combinations will be ready tomorrow."
           actionTitle="Start over"
@@ -158,7 +159,7 @@ export default function TodayScreen() {
 
       {!isLoading && !wornConfirmed && suggestions.length === 0 && (
         <EmptyState
-          emoji="🪞"
+          icon="add-circle-outline"
           title="No suggestions yet"
           message="Add a few tops and bottoms to your closet and LAM will start styling you."
           actionTitle="Capture an item"

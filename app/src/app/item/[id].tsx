@@ -19,6 +19,7 @@ import {
 } from '../../api/hooks';
 import { Button } from '../../components/Button';
 import { Chip } from '../../components/Chip';
+import { Icon } from '../../components/Icon';
 import { CONTENT_MAX_WIDTH, useTheme } from '../../theme';
 import type { ClothingCategory, SuggestedLookDto } from '../../types/api';
 
@@ -94,9 +95,10 @@ export default function ItemDetailScreen() {
           ))}
         </ScrollView>
 
-        <Text style={[theme.text.heading, { color: theme.colors.text }]}>
-          ✨ Best to go with
-        </Text>
+        <View style={styles.sectionHeader}>
+          <Icon name="sparkles-outline" size={theme.iconSize.md} color={theme.colors.accent} />
+          <Text style={[theme.text.heading, { color: theme.colors.text }]}>Best to go with</Text>
+        </View>
         {pairingsLoading && <ActivityIndicator color={theme.colors.accent} />}
         {!pairingsLoading && (pairings?.length ?? 0) === 0 && (
           <Text style={[theme.text.caption, { color: theme.colors.textMuted }]}>
@@ -114,9 +116,12 @@ export default function ItemDetailScreen() {
 
         {looksWithItem && looksWithItem.length > 0 && (
           <>
-            <Text style={[theme.text.heading, { color: theme.colors.text }]}>
-              👗 Looks with this item
-            </Text>
+            <View style={styles.sectionHeader}>
+              <Icon name="shirt-outline" size={theme.iconSize.md} color={theme.colors.accent} />
+              <Text style={[theme.text.heading, { color: theme.colors.text }]}>
+                Looks with this item
+              </Text>
+            </View>
             {looksWithItem.map((look) => (
               <View
                 key={look.id}
@@ -149,7 +154,8 @@ export default function ItemDetailScreen() {
         )}
 
         <Button
-          title={item.isFavorite ? '♥ Remove from favorites' : '♡ Mark as favorite'}
+          title={item.isFavorite ? 'Remove from favorites' : 'Mark as favorite'}
+          icon={item.isFavorite ? 'heart' : 'heart-outline'}
           variant="secondary"
           onPress={() => update.mutate({ isFavorite: !item.isFavorite })}
         />
@@ -214,7 +220,8 @@ export default function ItemDetailScreen() {
           </Text>
         )}
         <Button
-          title={saved ? 'Saved ✓' : 'Save as look'}
+          title={saved ? 'Saved' : 'Save as look'}
+          icon={saved ? 'checkmark-circle' : undefined}
           variant="secondary"
           compact
           onPress={() =>
@@ -247,6 +254,7 @@ export default function ItemDetailScreen() {
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   content: { padding: 20, alignItems: 'center' },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   imageWrap: { width: '100%', borderRadius: 32 },
   image: { width: '100%', aspectRatio: 0.9 },
   statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },

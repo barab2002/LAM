@@ -11,6 +11,7 @@ import {
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useAuth } from '../auth/AuthContext';
 import { Button } from '../components/Button';
+import { Icon } from '../components/Icon';
 import { CONTENT_MAX_WIDTH, fonts, motion, useTheme } from '../theme';
 
 export default function SignInScreen() {
@@ -71,7 +72,7 @@ export default function SignInScreen() {
     >
       <Animated.View style={[styles.card, { maxWidth: CONTENT_MAX_WIDTH }, heroStyle]}>
         <View style={[styles.mark, { backgroundColor: theme.colors.accentMuted }]}>
-          <Text style={styles.markGlyph}>✨</Text>
+          <Icon name="sparkles" size={theme.iconSize.xl} color={theme.colors.accent} />
         </View>
         <Text
           style={[
@@ -157,7 +158,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 4,
   },
-  markGlyph: { fontSize: 30 },
   wordmark: { fontSize: 34, letterSpacing: -1 },
   input: { borderWidth: 1, paddingHorizontal: 16, paddingVertical: 14 },
   badge: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999 },

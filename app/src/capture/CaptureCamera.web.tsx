@@ -163,7 +163,7 @@ export const CaptureCamera = forwardRef<CaptureCameraHandle, CaptureCameraProps>
         {gestureOn && (
           <View style={[styles.badge, { backgroundColor: theme.colors.overlay }]}>
             <Text style={[theme.text.caption, { color: '#fff' }]}>
-              ✌️ Hold up a V to start the timer
+              Hold up a V to start the timer
             </Text>
           </View>
         )}

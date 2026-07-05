@@ -120,7 +120,7 @@ export default function CalendarScreen() {
 
       {!selectedDay && (history ?? []).length === 0 && (
         <EmptyState
-          emoji="🗓️"
+          icon="calendar-outline"
           title="No outfits logged yet"
           message="When you wear a suggested look (or log one yourself), it lands here so you never repeat an outfit two events in a row."
         />

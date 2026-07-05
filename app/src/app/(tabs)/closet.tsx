@@ -21,6 +21,7 @@ import Animated, {
 import { useDeclutter, useItems, useUploadItem } from '../../api/hooks';
 import { EmptyState } from '../../components/EmptyState';
 import { Chip } from '../../components/Chip';
+import { Icon, IconName } from '../../components/Icon';
 import { ItemCard } from '../../components/ItemCard';
 import { ItemCardSkeleton } from '../../components/Skeleton';
 import { tapHaptic } from '../../lib/haptics';
@@ -127,7 +128,7 @@ export default function ClosetScreen() {
                   ]}
                 >
                   <View style={[styles.declutterIcon, { backgroundColor: theme.colors.accentMuted }]}>
-                    <Text style={{ fontSize: 20 }}>🧹</Text>
+                    <Icon name="trash-outline" size={theme.iconSize.lg} color={theme.colors.accent} />
                   </View>
                   <View style={{ flex: 1, gap: 2 }}>
                     <Text style={[theme.text.label, { color: theme.colors.text }]}>
@@ -162,7 +163,7 @@ export default function ClosetScreen() {
               </View>
             ) : (
               <EmptyState
-                emoji="🧺"
+                icon="shirt-outline"
                 title="Your closet is empty"
                 message="Capture your clothes with the camera and LAM will tag and organize them automatically."
                 actionTitle="Capture your first item"
@@ -205,7 +206,7 @@ export default function ClosetScreen() {
           >
             <View style={[styles.grabber, { backgroundColor: theme.colors.border }]} />
             <SheetOption
-              emoji="🏷️"
+              icon="pricetag-outline"
               label="Scan barcode"
               hint="Read the clothing tag — details fill in automatically"
               onPress={() => {
@@ -214,7 +215,7 @@ export default function ClosetScreen() {
               }}
             />
             <SheetOption
-              emoji="📸"
+              icon="camera-outline"
               label="Take a photo"
               hint="Snap the garment with the camera"
               onPress={() => {
@@ -223,7 +224,7 @@ export default function ClosetScreen() {
               }}
             />
             <SheetOption
-              emoji="🖼️"
+              icon="image-outline"
               label="From gallery"
               hint="Pick an existing picture"
               onPress={pickFromGallery}
@@ -248,21 +249,27 @@ export default function ClosetScreen() {
           }}
           style={[styles.fab, theme.shadow('md'), { backgroundColor: theme.colors.accent }]}
         >
-          <Text style={[styles.fabIcon, { color: theme.colors.onAccent }]}>
-            {upload.isPending ? '…' : addOpen ? '×' : '+'}
-          </Text>
+          {upload.isPending ? (
+            <Text style={[styles.fabIcon, { color: theme.colors.onAccent }]}>…</Text>
+          ) : (
+            <Icon
+              name={addOpen ? 'close' : 'add'}
+              size={theme.iconSize.xl}
+              color={theme.colors.onAccent}
+            />
+          )}
         </Pressable>
       </Animated.View>
     </View>
   );
 
   function SheetOption({
-    emoji,
+    icon,
     label,
     hint,
     onPress,
   }: {
-    emoji: string;
+    icon: IconName;
     label: string;
     hint: string;
     onPress: () => void;
@@ -279,7 +286,9 @@ export default function ClosetScreen() {
           },
         ]}
       >
-        <Text style={styles.sheetEmoji}>{emoji}</Text>
+        <View style={[styles.sheetIconChip, { backgroundColor: theme.colors.accentMuted }]}>
+          <Icon name={icon} size={theme.iconSize.md} color={theme.colors.accent} />
+        </View>
         <View style={{ flex: 1 }}>
           <Text style={[theme.text.label, { color: theme.colors.text }]}>{label}</Text>
           <Text style={[theme.text.caption, { color: theme.colors.textMuted }]}>{hint}</Text>
@@ -352,5 +361,11 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 12,
   },
-  sheetEmoji: { fontSize: 24 },
+  sheetIconChip: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
